@@ -35,82 +35,126 @@ Result<byte, std::string> Assembler::processOperand(std::string operand) {
 Result<ByteArray, std::string> Assembler::assemble() {
   ByteArray output = {};
 
-  int line_num = -1;
-  for (std::string &line : split(code, "\n")) {
-    line_num++;
-    if (line.starts_with(';')) // skip comments
-      continue;
+  bool inPreprocessor = true;
+  for (;;) {
+    int line_num = -1;
+    addr = 0x00;
+    for (std::string &line : split(code, "\n")) {
+      line_num++;
+      if (line.starts_with(';')) // skip comments
+        continue;
 
-    // Filter unnecessary characters
-    while (line.starts_with(' '))
-      line.erase(line.begin());
-    while (line.starts_with('\t'))
-      line.erase(line.begin());
-    while (line.ends_with(' '))
-      line.pop_back();
+      // Filter unnecessary characters
+      while (line.starts_with(' '))
+        line.erase(line.begin());
+      while (line.starts_with('\t'))
+        line.erase(line.begin());
+      while (line.ends_with(' '))
+        line.pop_back();
 
-    if (line == "\n" || line.empty())
-      continue;
+      if (line == "\n" || line.empty())
+        continue;
 
-    std::vector<std::string> instruction = split(line, " ");
-    if (instruction[0] == "mov") { // mov
-      if (instruction.size() < 3) {
-        return Result<ByteArray, std::string>::error(
-            std::format("[{}] Invalid operand count", line_num));
+      if (line.starts_with('.')) {
+        labels[line] = addr;
+        continue;
       }
 
-      if (isHexString(instruction[2]) || isInteger(instruction[2])) { // movc
-        Result<byte, std::string> left = processOperand(instruction[1]);
-        if (left.is_error())
+      std::vector<std::string> instruction = split(line, " ");
+      if (instruction[0] == "mov") { // mov
+        if (instruction.size() < 3) {
           return Result<ByteArray, std::string>::error(
-              std::format("[{}] {}", line_num, left.get_error().value()));
-
-        output.push_back(MOVC_R0 + left.get_success().value());
-
-        int base = 16;
-        if (isInteger(instruction[2]))
-          base = 10;
-
-        for (byte b : convertQEndian(std::stoi(instruction[2], 0, base))) {
-          output.push_back(b);
+              std::format("[{}] Invalid operand count", line_num));
         }
 
-        addr += 0x02;
-      } else {
-        Result<byte, std::string> left = processOperand(instruction[1]);
-        Result<byte, std::string> right = processOperand(instruction[2]);
+        if (isHexString(instruction[2]) || isInteger(instruction[2]) ||
+            instruction[2][0] == '.') { // movc
+          Result<byte, std::string> left = processOperand(instruction[1]);
+          if (left.is_error())
+            return Result<ByteArray, std::string>::error(
+                std::format("[{}] {}", line_num, left.get_error().value()));
 
-        if (left.is_error())
+          output.push_back(MOVC_R0 + left.get_success().value());
+
+          if (instruction[2][0] == '.') {
+            for (byte b : convertQEndian(labels[instruction[2]])) {
+              output.push_back(b);
+            }
+          } else {
+            int base = 16;
+            if (isInteger(instruction[2]))
+              base = 10;
+
+            for (byte b : convertQEndian(std::stoi(instruction[2], 0, base))) {
+              output.push_back(b);
+            }
+          }
+
+          addr += 0x05;
+        } else {
+          Result<byte, std::string> left = processOperand(instruction[1]);
+          Result<byte, std::string> right = processOperand(instruction[2]);
+
+          if (left.is_error())
+            return Result<ByteArray, std::string>::error(
+                std::format("[{}] {}", line_num, left.get_error().value()));
+
+          if (right.is_error())
+            return Result<ByteArray, std::string>::error(
+                std::format("[{}] {}", line_num, right.get_error().value()));
+
+          output.push_back(MOV_R0 + left.get_success().value());
+          output.push_back(right.get_success().value());
+          addr += 0x02;
+        }
+      } else if (instruction[0] == "push") { // push
+        if (instruction.size() < 2) {
           return Result<ByteArray, std::string>::error(
-              std::format("[{}] {}", line_num, left.get_error().value()));
-
-        if (right.is_error())
-          return Result<ByteArray, std::string>::error(
-              std::format("[{}] {}", line_num, right.get_error().value()));
-
-        output.push_back(MOV_R0 + left.get_success().value());
-        output.push_back(right.get_success().value());
-        addr += 0x02;
-      }
-    } else if (instruction[0] == "push") { // push
-      if (instruction.size() < 2) {
-        return Result<ByteArray, std::string>::error(
-            std::format("[{}] Invalid operand count", line_num));
-      }
-
-      output.push_back(PUSH);
-
-      if (isHexString(instruction[1]) || isInteger(instruction[1])) { // pushc
-        int base = 16;
-        if (isInteger(instruction[1]))
-          base = 10;
-
-        for (byte b : convertQEndian(std::stoi(instruction[1], 0, base))) {
-          output.push_back(b);
+              std::format("[{}] Invalid operand count", line_num));
         }
 
-        addr += 0x02;
-      } else {
+        output.push_back(PUSH);
+
+        if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
+            instruction[1][0] == '.') { // pushc
+          if (instruction[1][0] == '.') {
+            for (byte b : convertQEndian(labels[instruction[1]])) {
+              output.push_back(b);
+            }
+          } else {
+            int base = 16;
+            if (isInteger(instruction[1]))
+              base = 10;
+
+            for (byte b : convertQEndian(std::stoi(instruction[1], 0, base))) {
+              output.push_back(b);
+            }
+          }
+
+          addr += 0x02;
+        } else {
+          Result<byte, std::string> op = processOperand(instruction[1]);
+
+          if (op.is_error())
+            return Result<ByteArray, std::string>::error(
+                std::format("[{}] {}", line_num, op.get_error().value()));
+
+          output.push_back(op.get_success().value());
+          addr += 0x02;
+        }
+      } else if (instruction[0] == "hlt") { // hlt
+        output.push_back(HLT);
+        addr += 0x01;
+      } else if (instruction[0] == "nop") { // nop
+        output.push_back(NOP);
+        addr += 0x01;
+      } else if (instruction[0] == "pop") { // pop
+        if (instruction.size() < 2) {
+          return Result<ByteArray, std::string>::error(
+              std::format("[{}] Invalid operand count", line_num));
+        }
+
+        output.push_back(POP);
         Result<byte, std::string> op = processOperand(instruction[1]);
 
         if (op.is_error())
@@ -119,62 +163,45 @@ Result<ByteArray, std::string> Assembler::assemble() {
 
         output.push_back(op.get_success().value());
         addr += 0x02;
-      }
-    } else if (instruction[0] == "hlt") { // hlt
-      output.push_back(HLT);
-      addr += 0x01;
-    } else if (instruction[0] == "nop") { // nop
-      output.push_back(NOP);
-      addr += 0x01;
-    } else if (instruction[0] == "pop") { // pop
-      if (instruction.size() < 2) {
-        return Result<ByteArray, std::string>::error(
-            std::format("[{}] Invalid operand count", line_num));
-      }
+      } else if (instruction[0] == "lod") { // lod
+        if (instruction.size() < 4) {
+          return Result<ByteArray, std::string>::error(
+              std::format("[{}] Invalid operand count", line_num));
+        }
 
-      output.push_back(POP);
-      Result<byte, std::string> op = processOperand(instruction[1]);
+        Result<byte, std::string> left = processOperand(instruction[3]);
+        Result<byte, std::string> right = processOperand(instruction[1]);
 
-      if (op.is_error())
-        return Result<ByteArray, std::string>::error(
-            std::format("[{}] {}", line_num, op.get_error().value()));
+        if (left.is_error())
+          return Result<ByteArray, std::string>::error(
+              std::format("[{}] {}", line_num, left.get_error().value()));
+        if (right.is_error())
+          return Result<ByteArray, std::string>::error(
+              std::format("[{}] {}", line_num, right.get_error().value()));
 
-      output.push_back(op.get_success().value());
-      addr += 0x02;
-    } else if (instruction[0] == "lod") { // lod
-      if (instruction.size() < 4) {
-        return Result<ByteArray, std::string>::error(
-            std::format("[{}] Invalid operand count", line_num));
-      }
+        output.push_back(LOD_R0 + left.get_success().value());
+        if (instruction[2] == "dword") {
+          output.push_back(0x00);
+        } else if (instruction[2] == "word") {
+          output.push_back(0x01);
+        } else if (instruction[2] == "byte") {
+          output.push_back(0x02);
+        } else {
+          return Result<ByteArray, std::string>::error(
+              std::format("[{}] Invalid size specifier", line_num));
+        }
 
-      Result<byte, std::string> left = processOperand(instruction[3]);
-      Result<byte, std::string> right = processOperand(instruction[1]);
-
-      if (left.is_error())
-        return Result<ByteArray, std::string>::error(
-            std::format("[{}] {}", line_num, left.get_error().value()));
-      if (right.is_error())
-        return Result<ByteArray, std::string>::error(
-            std::format("[{}] {}", line_num, right.get_error().value()));
-
-      output.push_back(LOD_R0 + left.get_success().value());
-      if (instruction[2] == "dword") {
-        output.push_back(0x00);
-      } else if (instruction[2] == "word") {
-        output.push_back(0x01);
-      } else if (instruction[2] == "byte") {
-        output.push_back(0x02);
+        output.push_back(right.get_success().value());
+        addr += 0x03;
       } else {
         return Result<ByteArray, std::string>::error(
-            std::format("[{}] Invalid size specifier", line_num));
+            std::format("[{}] Invalid instruction", line_num));
       }
-
-      output.push_back(right.get_success().value());
-      addr += 0x03;
-    } else {
-      return Result<ByteArray, std::string>::error(
-          std::format("[{}] Invalid instruction", line_num));
     }
+    if (inPreprocessor == false)
+      break;
+    inPreprocessor = false;
+    output.clear();
   }
 
   return Result<ByteArray, std::string>::success(output);
