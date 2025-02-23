@@ -7,13 +7,13 @@
 
 class Assembler {
 public:
-	std::string code;
-	dword addr;
+  std::string code;
+  dword addr;
 
-	Assembler(std::string code = "");
+  Assembler(std::string code = "");
 
-	Result<byte, std::string> processOperand(std::string operand);
-	Result<ByteArray, std::string> assemble();
+  Result<byte, std::string> processOperand(std::string operand);
+  Result<ByteArray, std::string> assemble();
 
-	~Assembler();
+  ~Assembler();
 };

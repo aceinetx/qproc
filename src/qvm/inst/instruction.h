@@ -8,7 +8,6 @@ class VM;
 
 class Instruction {
 public:
-	virtual Exception execute(VM* vm) = 0;
-	virtual ~Instruction() {
-	}
+  virtual Exception execute(VM *vm) = 0;
+  virtual ~Instruction() {}
 };

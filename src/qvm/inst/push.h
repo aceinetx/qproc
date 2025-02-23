@@ -3,14 +3,14 @@
 
 class PushcInstruction : public Instruction {
 public:
-	dword source;
+  dword source;
 
-	Exception execute(VM* vm);
+  Exception execute(VM *vm);
 };
 
 class PushInstruction : public Instruction {
 public:
-	dword* source;
+  dword *source;
 
-	Exception execute(VM* vm);
+  Exception execute(VM *vm);
 };

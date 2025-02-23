@@ -6,7 +6,7 @@
 std::vector<std::string> split(std::string s, std::string delimiter);
 
 std::string replaceAll(const std::string &str, const std::string &from,
-											 const std::string &to);
+                       const std::string &to);
 
 bool isHexString(std::string s);
 bool isInteger(std::string s);
