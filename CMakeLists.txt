@@ -13,7 +13,7 @@ set(SOURCES "src/fs.cc" "src/util.cc")
 if (MSVC)
 	add_compile_options(/W4)
 else()
-	add_compile_options(-Wall -Wextra -Wpedantic)
+	add_compile_options(-Wall -Wextra -Wpedantic -Wno-type-limits)
 endif()
 
 include_directories("src/qvm" "src/qvm/inst" "src/qas" "src")
