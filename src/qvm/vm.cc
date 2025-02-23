@@ -10,6 +10,7 @@
 #include "inst/lod_dword.h"
 #include "inst/lod_word.h"
 #include "inst/mov.h"
+#include "inst/pop.h"
 #include "inst/push.h"
 #include "qvm.h"
 #include "util.h"
@@ -165,9 +166,9 @@ InstConvResult VM::convertIntoInstruction() {
     instruction->dest = getRegisterFromIndex(bytes[2]);
     result.output = instruction;
 
-    result.disassembly = std::format(
-        "lod {} {} {}", size_name, getRegisterNameFromIndex(bytes[0] - LOD_R0),
-        getRegisterNameFromIndex(bytes[2]));
+    result.disassembly =
+        std::format("lod {} {} {}", getRegisterNameFromIndex(bytes[2]),
+                    size_name, getRegisterNameFromIndex(bytes[0] - LOD_R0));
     result.success = true;
     registers.ip += 3;
   } else if (memory[registers.ip] == PUSH) { // push
@@ -197,6 +198,21 @@ InstConvResult VM::convertIntoInstruction() {
     result.disassembly = std::format("pushc 0x{:x}", instruction->source);
     result.success = true;
     registers.ip += 5;
+
+    return result;
+  } else if (memory[registers.ip] == POP) { // pop
+    std::vector<byte> bytes = getForward(2);
+    if (bytes.empty())
+      return result;
+
+    PopInstruction *instruction = new PopInstruction();
+    instruction->dest = getRegisterFromIndex(bytes[1]);
+    result.output = instruction;
+
+    result.disassembly =
+        std::format("pop {}", getRegisterNameFromIndex(bytes[1]));
+    result.success = true;
+    registers.ip += 2;
 
     return result;
   }

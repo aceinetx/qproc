@@ -32,3 +32,5 @@
 
 #define PUSH 0x1a
 #define PUSHC 0x1b
+
+#define POP 0x1c

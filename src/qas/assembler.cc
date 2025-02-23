@@ -126,6 +126,51 @@ Result<ByteArray, std::string> Assembler::assemble() {
     } else if (instruction[0] == "nop") { // nop
       output.push_back(NOP);
       addr += 0x01;
+    } else if (instruction[0] == "pop") { // pop
+      if (instruction.size() < 2) {
+        return Result<ByteArray, std::string>::error(
+            std::format("[{}] Invalid operand count", line_num));
+      }
+
+      output.push_back(POP);
+      Result<byte, std::string> op = processOperand(instruction[1]);
+
+      if (op.is_error())
+        return Result<ByteArray, std::string>::error(
+            std::format("[{}] {}", line_num, op.get_error().value()));
+
+      output.push_back(op.get_success().value());
+      addr += 0x02;
+    } else if (instruction[0] == "lod") { // lod
+      if (instruction.size() < 4) {
+        return Result<ByteArray, std::string>::error(
+            std::format("[{}] Invalid operand count", line_num));
+      }
+
+      Result<byte, std::string> left = processOperand(instruction[3]);
+      Result<byte, std::string> right = processOperand(instruction[1]);
+
+      if (left.is_error())
+        return Result<ByteArray, std::string>::error(
+            std::format("[{}] {}", line_num, left.get_error().value()));
+      if (right.is_error())
+        return Result<ByteArray, std::string>::error(
+            std::format("[{}] {}", line_num, right.get_error().value()));
+
+      output.push_back(LOD_R0 + left.get_success().value());
+      if (instruction[2] == "dword") {
+        output.push_back(0x00);
+      } else if (instruction[2] == "word") {
+        output.push_back(0x01);
+      } else if (instruction[2] == "byte") {
+        output.push_back(0x02);
+      } else {
+        return Result<ByteArray, std::string>::error(
+            std::format("[{}] Invalid size specifier", line_num));
+      }
+
+      output.push_back(right.get_success().value());
+      addr += 0x03;
     } else {
       return Result<ByteArray, std::string>::error(
           std::format("[{}] Invalid instruction", line_num));
