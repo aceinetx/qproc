@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 
-#include "bytearray.h"
 #include "qvm.h"
 #include "result.h"
 #include <map>

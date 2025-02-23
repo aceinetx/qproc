@@ -5,7 +5,6 @@
 #include <cstring>
 #include <string>
 
-#include "bytearray.h"
 #include "fs.h"
 #include "util.h"
 #include "vm.h"

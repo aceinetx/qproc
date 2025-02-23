@@ -5,7 +5,6 @@
 #include <sstream>
 #include <string>
 
-#include "bytearray.h"
 #include "result.h"
 
 Result<std::string, std::string> readFile(const std::string &filename) {
