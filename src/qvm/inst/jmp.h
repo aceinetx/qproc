@@ -12,3 +12,23 @@ class JeInstruction : public JmpInstruction {
 public:
   Exception execute(VM *vm);
 };
+
+class JlInstruction : public JmpInstruction {
+public:
+  Exception execute(VM *vm);
+};
+
+class JgInstruction : public JmpInstruction {
+public:
+  Exception execute(VM *vm);
+};
+
+class JleInstruction : public JmpInstruction {
+public:
+  Exception execute(VM *vm);
+};
+
+class JgeInstruction : public JmpInstruction {
+public:
+  Exception execute(VM *vm);
+};

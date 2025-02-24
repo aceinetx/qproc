@@ -45,3 +45,8 @@
 #define CMP_IP 0x24
 
 #define JE 0x25
+#define JNE 0x26
+#define JL 0x27
+#define JG 0x28
+#define JLE 0x29
+#define JGE 0x2a

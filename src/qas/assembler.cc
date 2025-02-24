@@ -76,7 +76,11 @@ Result<ByteArray, std::string> Assembler::assemble() {
 
           output.push_back(MOVC_R0 + left.get_success().value());
 
-          if (instruction[2][0] == '.') {
+          if (instruction[2][0] == '.') {        // if a label
+            if (labels.find(instruction[2]) == labels.end()) { // label does not exist
+              return Result<ByteArray, std::string>::error(
+                  std::format("[{}] Undefined label", line_num));
+            }
             for (byte b : convertQEndian(labels[instruction[2]])) {
               output.push_back(b);
             }
@@ -116,8 +120,12 @@ Result<ByteArray, std::string> Assembler::assemble() {
         output.push_back(PUSH);
 
         if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
-            instruction[1][0] == '.') { // pushc
-          if (instruction[1][0] == '.') {
+            instruction[1][0] == '.') {          // pushc
+          if (instruction[1][0] == '.') {        // if a label
+            if (labels.find(instruction[1]) == labels.end()) { // label does not exist
+              return Result<ByteArray, std::string>::error(
+                  std::format("[{}] Undefined label", line_num));
+            }
             for (byte b : convertQEndian(labels[instruction[1]])) {
               output.push_back(b);
             }
@@ -223,7 +231,11 @@ Result<ByteArray, std::string> Assembler::assemble() {
 
           output.push_back(MOVC_IP);
 
-          if (instruction[1][0] == '.') {
+          if (instruction[1][0] == '.') {        // if a label
+            if (labels.find(instruction[1]) == labels.end()) { // label does not exist
+              return Result<ByteArray, std::string>::error(
+                  std::format("[{}] Undefined label", line_num));
+            }
             for (byte b : convertQEndian(labels[instruction[1]])) {
               output.push_back(b);
             }
@@ -249,18 +261,38 @@ Result<ByteArray, std::string> Assembler::assemble() {
           output.push_back(left.get_success().value());
           addr += 0x02;
         }
-      } else if (instruction[0] == "je") { // je
+      } else if (instruction[0][0] == 'j') { // jmps
         if (instruction.size() < 2) {
           return Result<ByteArray, std::string>::error(
               std::format("[{}] Invalid operand count", line_num));
         }
 
-        output.push_back(JE);
+        if (instruction[0] == "je") {
+          output.push_back(JE);
+        } else if (instruction[0] == "jne") {
+          output.push_back(JNE);
+        } else if (instruction[0] == "jl") {
+          output.push_back(JL);
+        } else if (instruction[0] == "jg") {
+          output.push_back(JG);
+        } else if (instruction[0] == "jle") {
+          output.push_back(JLE);
+        } else if (instruction[0] == "jge") {
+          output.push_back(JGE);
+        } else {
+          return Result<ByteArray, std::string>::error(std::format(
+              "[{}] Invalid instruction, excepted a jump kind instruction",
+              line_num));
+        }
 
         if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
             instruction[1][0] == '.') { // constant
           output.push_back(0xff);
-          if (instruction[1][0] == '.') {
+          if (instruction[1][0] == '.') {        // if a label
+            if (labels.find(instruction[1]) == labels.end()) { // label does not exist
+              return Result<ByteArray, std::string>::error(
+                  std::format("[{}] Undefined label", line_num));
+            }
             for (byte b : convertQEndian(labels[instruction[1]])) {
               output.push_back(b);
             }

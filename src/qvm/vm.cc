@@ -234,7 +234,8 @@ InstConvResult VM::convertIntoInstruction() {
     registers.ip += 2;
 
     return result;
-  } else if (memory[registers.ip] == JE) { // jmps
+  } else if (memory[registers.ip] >= JE &&
+             memory[registers.ip] <= JGE) { // jmps
     std::vector<byte> bytes = getForward(6);
     if (bytes.empty())
       return result;
@@ -246,6 +247,27 @@ InstConvResult VM::convertIntoInstruction() {
     case JE:
       instruction = new JeInstruction();
       result.disassembly = "je ";
+      break;
+    case JNE:
+      instruction = new JeInstruction();
+      result.disassembly = "jne ";
+      flags.ZF = !flags.ZF;
+      break;
+    case JL:
+      instruction = new JlInstruction();
+      result.disassembly = "jl ";
+      break;
+    case JG:
+      instruction = new JgInstruction();
+      result.disassembly = "jg ";
+      break;
+    case JLE:
+      instruction = new JleInstruction();
+      result.disassembly = "jle ";
+      break;
+    case JGE:
+      instruction = new JgeInstruction();
+      result.disassembly = "jge ";
       break;
     }
 
