@@ -33,10 +33,12 @@ Result<byte, std::string> Assembler::processOperand(std::string operand) {
 }
 
 Result<ByteArray, std::string> Assembler::doLabel(std::string operand) {
-	if (labels.find(operand) == labels.end() &&
-			!inPreprocessor) { // label does not exist
+	if (inPreprocessor)
+		return Result<ByteArray, std::string>::success(output);
+
+	if (!labels.count(operand)) { // label does not exist
 		return Result<ByteArray, std::string>::error(
-				std::format("[{}] Undefined label", line_num));
+				std::format("Undefined label"));
 	}
 	for (byte b : convertQEndian(labels[operand])) {
 		output.push_back(b);
@@ -47,9 +49,13 @@ Result<ByteArray, std::string> Assembler::doLabel(std::string operand) {
 Result<ByteArray, std::string> Assembler::assemble() {
 	output.clear();
 
-	bool inPreprocessor = true;
+	inPreprocessor = true;
 	for (;;) {
-		int line_num = -1;
+		if (!inPreprocessor) {
+			printf("Preprocessed, doing compilation now\n");
+		}
+
+		line_num = -1;
 		addr = 0x00;
 		for (std::string &line : split(code, "\n")) {
 			line_num++;
@@ -63,12 +69,17 @@ Result<ByteArray, std::string> Assembler::assemble() {
 				line.erase(line.begin());
 			while (line.ends_with(' '))
 				line.pop_back();
+			while (line.ends_with('\t'))
+				line.pop_back();
 
 			if (line == "\n" || line.empty())
 				continue;
 
 			if (line.starts_with('.')) {
+				if (!inPreprocessor)
+					continue;
 				labels[line] = addr;
+				// printf("declared label %s\n", line.c_str());
 				continue;
 			}
 
@@ -89,13 +100,10 @@ Result<ByteArray, std::string> Assembler::assemble() {
 					output.push_back(MOVC_R0 + left.get_success().value());
 
 					if (instruction[2][0] == '.') { // if a label
-						if (labels.find(instruction[2]) == labels.end() &&
-								!inPreprocessor) { // label does not exist
+						auto result = doLabel(instruction[2]);
+						if (result.is_error()) {
 							return Result<ByteArray, std::string>::error(
-									std::format("[{}] Undefined label", line_num));
-						}
-						for (byte b : convertQEndian(labels[instruction[2]])) {
-							output.push_back(b);
+									std::format("[{}] {}", line_num, result.get_error().value()));
 						}
 					} else {
 						int base = 16;
@@ -135,13 +143,10 @@ Result<ByteArray, std::string> Assembler::assemble() {
 				if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
 						instruction[1][0] == '.') {		// pushc
 					if (instruction[1][0] == '.') { // if a label
-						if (labels.find(instruction[1]) == labels.end() &&
-								!inPreprocessor) { // label does not exist
+						auto result = doLabel(instruction[1]);
+						if (result.is_error()) {
 							return Result<ByteArray, std::string>::error(
-									std::format("[{}] Undefined label", line_num));
-						}
-						for (byte b : convertQEndian(labels[instruction[1]])) {
-							output.push_back(b);
+									std::format("[{}] {}", line_num, result.get_error().value()));
 						}
 					} else {
 						int base = 16;
@@ -246,13 +251,10 @@ Result<ByteArray, std::string> Assembler::assemble() {
 					output.push_back(MOVC_IP);
 
 					if (instruction[1][0] == '.') { // if a label
-						if (labels.find(instruction[1]) == labels.end() &&
-								!inPreprocessor) { // label does not exist
+						auto result = doLabel(instruction[1]);
+						if (result.is_error()) {
 							return Result<ByteArray, std::string>::error(
-									std::format("[{}] Undefined label", line_num));
-						}
-						for (byte b : convertQEndian(labels[instruction[1]])) {
-							output.push_back(b);
+									std::format("[{}] {}", line_num, result.get_error().value()));
 						}
 					} else {
 						int base = 16;
@@ -304,13 +306,10 @@ Result<ByteArray, std::string> Assembler::assemble() {
 						instruction[1][0] == '.') { // constant
 					output.push_back(0xff);
 					if (instruction[1][0] == '.') { // if a label
-						if (labels.find(instruction[1]) == labels.end() &&
-								!inPreprocessor) { // label does not exist
+						auto result = doLabel(instruction[1]);
+						if (result.is_error()) {
 							return Result<ByteArray, std::string>::error(
-									std::format("[{}] Undefined label", line_num));
-						}
-						for (byte b : convertQEndian(labels[instruction[1]])) {
-							output.push_back(b);
+									std::format("[{}] {}", line_num, result.get_error().value()));
 						}
 					} else {
 						int base = 16;
@@ -333,6 +332,120 @@ Result<ByteArray, std::string> Assembler::assemble() {
 					output.push_back(op.get_success().value());
 					addr += 0x02;
 				}
+			} else if (instruction[0] == "str") { // str
+				if (instruction.size() < 4) {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Invalid operand count", line_num));
+				}
+
+				Result<byte, std::string> left = processOperand(instruction[2]);
+				Result<byte, std::string> right = processOperand(instruction[3]);
+
+				if (left.is_error())
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] {}", line_num, left.get_error().value()));
+				if (right.is_error())
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] {}", line_num, right.get_error().value()));
+
+				output.push_back(STR_R0 + left.get_success().value());
+				if (instruction[1] == "dword") {
+					output.push_back(0x00);
+				} else if (instruction[1] == "word") {
+					output.push_back(0x01);
+				} else if (instruction[1] == "byte") {
+					output.push_back(0x02);
+				} else {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Invalid size specifier", line_num));
+				}
+
+				output.push_back(right.get_success().value());
+				addr += 0x03;
+			} else if (instruction[0] == "byte") { // byte
+				if (instruction.size() < 2) {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Invalid operand count", line_num));
+				}
+
+				if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
+						instruction[1][0] == '.') {
+					if (instruction[1][0] == '.') { // if a label
+						return Result<ByteArray, std::string>::error(
+								std::format("[{}] Label cannot fit into a byte", line_num));
+					} else {
+						int base = 16;
+						if (isInteger(instruction[1]))
+							base = 10;
+
+						output.push_back(
+								convertQEndian(std::stoi(instruction[1], 0, base))[0]);
+					}
+
+					addr += 0x01;
+				} else {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Excepted a lvalue", line_num));
+				}
+			} else if (instruction[0] == "word") { // word
+				if (instruction.size() < 2) {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Invalid operand count", line_num));
+				}
+
+				if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
+						instruction[1][0] == '.') {
+					if (instruction[1][0] == '.') { // if a label
+						return Result<ByteArray, std::string>::error(
+								std::format("[{}] Label cannot fit into a word", line_num));
+					} else {
+						int base = 16;
+						if (isInteger(instruction[1]))
+							base = 10;
+
+						auto conv = convertQEndian(std::stoi(instruction[1], 0, base));
+
+						output.push_back(conv[0]);
+						output.push_back(conv[1]);
+					}
+
+					addr += 0x02;
+				} else {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Excepted a lvalue", line_num));
+				}
+			} else if (instruction[0] == "dword") { // dword
+				if (instruction.size() < 2) {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Invalid operand count", line_num));
+				}
+
+				if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
+						instruction[1][0] == '.') {
+					if (instruction[1][0] == '.') { // if a label
+						auto result = doLabel(instruction[1]);
+						if (result.is_error()) {
+							return Result<ByteArray, std::string>::error(
+									std::format("[{}] {}", line_num, result.get_error().value()));
+						}
+					} else {
+						int base = 16;
+						if (isInteger(instruction[1]))
+							base = 10;
+
+						auto conv = convertQEndian(std::stoi(instruction[1], 0, base));
+
+						output.push_back(conv[0]);
+						output.push_back(conv[1]);
+						output.push_back(conv[2]);
+						output.push_back(conv[3]);
+					}
+
+					addr += 0x04;
+				} else {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Excepted a lvalue", line_num));
+				}
 			} else {
 				return Result<ByteArray, std::string>::error(
 						std::format("[{}] Invalid instruction", line_num));
@@ -341,7 +454,6 @@ Result<ByteArray, std::string> Assembler::assemble() {
 		if (inPreprocessor == false)
 			break;
 		inPreprocessor = false;
-		printf("Preprocessed, doing compilation now\n");
 		output.clear();
 	}
 

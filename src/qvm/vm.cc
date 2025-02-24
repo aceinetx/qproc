@@ -14,6 +14,7 @@
 #include "inst/mov.h"
 #include "inst/pop.h"
 #include "inst/push.h"
+#include "inst/str.h"
 #include "qvm.h"
 #include "util.h"
 
@@ -25,6 +26,8 @@ VM::VM() {
 	registers.sp = MEMORY_SIZE - 1;
 	registers.bp = registers.sp;
 	registers.ip = 0;
+	flags.CF = 0;
+	flags.ZF = 0;
 	debug_state = DebugState::NONE;
 	log_instructions = false;
 	printf("VM initalize\n");
@@ -287,6 +290,44 @@ InstConvResult VM::convertIntoInstruction() {
 		result.success = true;
 
 		return result;
+	} else if (memory[registers.ip] >= STR_R0 &&
+						 memory[registers.ip] <= STR_IP) { // str
+		std::vector<byte> bytes = getForward(3);
+		if (bytes.empty())
+			return result;
+
+		StrInstruction *instruction;
+		std::string size_name = "???";
+		switch (bytes[1]) {
+		case 0x0: // dword
+			size_name = "dword";
+			instruction = new StrDwordInstruction();
+			break;
+		case 0x1: // word
+			size_name = "word";
+			instruction = new StrWordInstruction();
+			break;
+		case 0x2: // byte
+			size_name = "byte";
+			instruction = new StrByteInstruction();
+			break;
+		default:
+			result.output = nullptr;
+			result.disassembly = "???";
+			result.success = false;
+
+			return result;
+		}
+
+		instruction->dest = getRegisterFromIndex(bytes[0] - STR_R0);
+		instruction->source = getRegisterFromIndex(bytes[2]);
+		result.output = instruction;
+
+		result.disassembly = std::format(
+				"str {} {} {}", size_name, getRegisterNameFromIndex(bytes[0] - STR_R0),
+				getRegisterNameFromIndex(bytes[2]));
+		result.success = true;
+		registers.ip += 3;
 	}
 
 	return result;
