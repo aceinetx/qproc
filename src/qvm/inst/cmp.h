@@ -3,8 +3,8 @@
 
 class CmpInstruction : public Instruction {
 public:
-  dword *left;
-  dword *right;
+	dword *left;
+	dword *right;
 
-  Exception execute(VM *vm);
+	Exception execute(VM *vm);
 };

@@ -4,5 +4,5 @@
 
 class LodDwordInstruction : public LodInstruction {
 public:
-  Exception execute(VM *vm);
+	Exception execute(VM *vm);
 };

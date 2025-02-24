@@ -3,7 +3,7 @@
 
 class PopInstruction : public Instruction {
 public:
-  dword *dest;
+	dword *dest;
 
-  Exception execute(VM *vm);
+	Exception execute(VM *vm);
 };

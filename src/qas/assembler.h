@@ -1,20 +1,25 @@
 #pragma once
+#include <map>
 #include <string>
 
 #include "qvm.h"
 #include "result.h"
-#include <map>
 
 class Assembler {
+private:
+	ByteArray output;
+
 public:
-  std::string code;
-  dword addr;
-  std::map<std::string, dword> labels;
+	std::string code;
+	dword addr;
+	std::map<std::string, dword> labels;
 
-  Assembler(std::string code = "");
+	Result<void, std::string> doLabel(std::string operand);
 
-  Result<byte, std::string> processOperand(std::string operand);
-  Result<ByteArray, std::string> assemble();
+	Assembler(std::string code = "");
 
-  ~Assembler();
+	Result<byte, std::string> processOperand(std::string operand);
+	Result<ByteArray, std::string> assemble();
+
+	~Assembler();
 };
