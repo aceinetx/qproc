@@ -6,6 +6,8 @@
 #include <format>
 #include <typeinfo>
 
+#include "inst/cmp.h"
+#include "inst/jmp.h"
 #include "inst/lod_byte.h"
 #include "inst/lod_dword.h"
 #include "inst/lod_word.h"
@@ -171,6 +173,23 @@ InstConvResult VM::convertIntoInstruction() {
                     size_name, getRegisterNameFromIndex(bytes[0] - LOD_R0));
     result.success = true;
     registers.ip += 3;
+  } else if (memory[registers.ip] >= CMP_R0 &&
+             memory[registers.ip] <= CMP_IP) { // cmp
+    std::vector<byte> bytes = getForward(2);
+    if (bytes.empty()) {
+      return result;
+    }
+
+    CmpInstruction *instruction = new CmpInstruction();
+    instruction->left = getRegisterFromIndex(bytes[0] - CMP_R0);
+    instruction->right = getRegisterFromIndex(bytes[1]);
+    result.output = instruction;
+
+    result.disassembly =
+        std::format("cmp {} {}", getRegisterNameFromIndex(bytes[0] - CMP_R0),
+                    getRegisterNameFromIndex(bytes[1]));
+    result.success = true;
+    registers.ip += 2;
   } else if (memory[registers.ip] == PUSH) { // push
     std::vector<byte> bytes = getForward(2);
     if (bytes.empty())
@@ -215,6 +234,37 @@ InstConvResult VM::convertIntoInstruction() {
     registers.ip += 2;
 
     return result;
+  } else if (memory[registers.ip] == JE) { // jmps
+    std::vector<byte> bytes = getForward(6);
+    if (bytes.empty())
+      return result;
+
+    JmpInstruction *instruction = nullptr;
+    result.disassembly = "jmp ";
+
+    switch (bytes[0]) {
+    case JE:
+      instruction = new JeInstruction();
+      result.disassembly = "je ";
+      break;
+    }
+
+    if (bytes[1] == 0xff) { // constant jump
+      instruction->dest = convertQEndian(bytes.data() + 2);
+      result.disassembly += std::format("0x{:x}", instruction->dest);
+      registers.ip += 6;
+    } else { // assume a register jump
+      instruction->dest = *getRegisterFromIndex(bytes[1]);
+      result.disassembly +=
+          std::format("{}", getRegisterNameFromIndex(bytes[1]));
+      registers.ip += 2;
+    }
+
+    result.output = instruction;
+
+    result.success = true;
+
+    return result;
   }
 
   return result;
@@ -254,6 +304,7 @@ void VM::fprintState(FILE *descriptor) {
           registers.r0, registers.r1, registers.r2, registers.r3, registers.r4);
   fprintf(descriptor, "SP: 0x%x BP: 0x%x IP: 0x%x\n", registers.sp,
           registers.bp, registers.ip);
+  fprintf(descriptor, "ZF: 0x%x CF: 0x%x\n", flags.ZF, flags.CF);
 }
 
 bool VM::handleException(Exception exception) {

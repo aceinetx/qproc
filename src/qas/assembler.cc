@@ -142,6 +142,25 @@ Result<ByteArray, std::string> Assembler::assemble() {
           output.push_back(op.get_success().value());
           addr += 0x02;
         }
+      } else if (instruction[0] == "cmp") { // cmp
+        if (instruction.size() < 2) {
+          return Result<ByteArray, std::string>::error(
+              std::format("[{}] Invalid operand count", line_num));
+        }
+
+        Result<byte, std::string> left = processOperand(instruction[1]);
+        Result<byte, std::string> right = processOperand(instruction[2]);
+
+        if (left.is_error())
+          return Result<ByteArray, std::string>::error(
+              std::format("[{}] {}", line_num, left.get_error().value()));
+        if (right.is_error())
+          return Result<ByteArray, std::string>::error(
+              std::format("[{}] {}", line_num, right.get_error().value()));
+
+        output.push_back(left.get_success().value() + CMP_R0);
+        output.push_back(right.get_success().value());
+        addr += 0x02;
       } else if (instruction[0] == "hlt") { // hlt
         output.push_back(HLT);
         addr += 0x01;
@@ -228,6 +247,42 @@ Result<ByteArray, std::string> Assembler::assemble() {
 
           output.push_back(MOV_IP);
           output.push_back(left.get_success().value());
+          addr += 0x02;
+        }
+      } else if (instruction[0] == "je") { // je
+        if (instruction.size() < 2) {
+          return Result<ByteArray, std::string>::error(
+              std::format("[{}] Invalid operand count", line_num));
+        }
+
+        output.push_back(JE);
+
+        if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
+            instruction[1][0] == '.') { // constant
+          output.push_back(0xff);
+          if (instruction[1][0] == '.') {
+            for (byte b : convertQEndian(labels[instruction[1]])) {
+              output.push_back(b);
+            }
+          } else {
+            int base = 16;
+            if (isInteger(instruction[1]))
+              base = 10;
+
+            for (byte b : convertQEndian(std::stoi(instruction[1], 0, base))) {
+              output.push_back(b);
+            }
+          }
+
+          addr += 0x06;
+        } else {
+          Result<byte, std::string> op = processOperand(instruction[1]);
+
+          if (op.is_error())
+            return Result<ByteArray, std::string>::error(
+                std::format("[{}] {}", line_num, op.get_error().value()));
+
+          output.push_back(op.get_success().value());
           addr += 0x02;
         }
       } else {

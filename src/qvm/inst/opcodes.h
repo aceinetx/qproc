@@ -34,3 +34,14 @@
 #define PUSHC 0x1b
 
 #define POP 0x1c
+
+#define CMP_R0 0x1d
+#define CMP_R1 0x1e
+#define CMP_R2 0x1f
+#define CMP_R3 0x20
+#define CMP_R4 0x21
+#define CMP_SP 0x22
+#define CMP_BP 0x23
+#define CMP_IP 0x24
+
+#define JE 0x25

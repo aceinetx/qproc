@@ -32,6 +32,11 @@ public:
   DebugState debug_state;
   bool log_instructions;
 
+  struct flags_t {
+    byte CF;
+    byte ZF;
+  } flags;
+
   std::vector<byte> getForward(int n);
   InstConvResult convertIntoInstruction();
   dword *getRegisterFromIndex(int index);
