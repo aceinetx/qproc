@@ -8,9 +8,7 @@
 
 #include "inst/cmp.h"
 #include "inst/jmp.h"
-#include "inst/lod_byte.h"
-#include "inst/lod_dword.h"
-#include "inst/lod_word.h"
+#include "inst/lod.h"
 #include "inst/mov.h"
 #include "inst/pop.h"
 #include "inst/push.h"
