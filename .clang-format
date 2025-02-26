@@ -11,7 +11,7 @@ AllowShortLoopsOnASingleLine: false
 AccessModifierOffset: -2
 BreakBeforeBraces: Attach
 SpaceBeforeParens: ControlStatements
-SpaceAfterCStyleCast: true
+SpaceAfterCStyleCast: false
 SpacesInParentheses: false
 SpacesInAngles: false
 SpacesInContainerLiterals: false
