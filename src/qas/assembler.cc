@@ -6,6 +6,14 @@
 #include "register.h"
 #include "util.h"
 
+unsigned stou(std::string const &str, size_t *idx = 0, int base = 10) {
+	unsigned long result = std::stoul(str, idx, base);
+	if (result > std::numeric_limits<unsigned>::max()) {
+		throw std::out_of_range("stou");
+	}
+	return result;
+}
+
 Assembler::Assembler(std::string code) {
 	this->code = code;
 	this->addr = 0;
@@ -110,7 +118,7 @@ Result<ByteArray, std::string> Assembler::assemble() {
 						if (isInteger(instruction[2]))
 							base = 10;
 
-						for (byte b : convertQEndian(std::stoi(instruction[2], 0, base))) {
+						for (byte b : convertQEndian(stou(instruction[2], 0, base))) {
 							output.push_back(b);
 						}
 					}
@@ -153,7 +161,7 @@ Result<ByteArray, std::string> Assembler::assemble() {
 						if (isInteger(instruction[1]))
 							base = 10;
 
-						for (byte b : convertQEndian(std::stoi(instruction[1], 0, base))) {
+						for (byte b : convertQEndian(stou(instruction[1], 0, base))) {
 							output.push_back(b);
 						}
 					}
@@ -261,7 +269,7 @@ Result<ByteArray, std::string> Assembler::assemble() {
 						if (isInteger(instruction[1]))
 							base = 10;
 
-						for (byte b : convertQEndian(std::stoi(instruction[1], 0, base))) {
+						for (byte b : convertQEndian(stou(instruction[1], 0, base))) {
 							output.push_back(b);
 						}
 					}
@@ -316,7 +324,7 @@ Result<ByteArray, std::string> Assembler::assemble() {
 						if (isInteger(instruction[1]))
 							base = 10;
 
-						for (byte b : convertQEndian(std::stoi(instruction[1], 0, base))) {
+						for (byte b : convertQEndian(stou(instruction[1], 0, base))) {
 							output.push_back(b);
 						}
 					}
@@ -378,8 +386,7 @@ Result<ByteArray, std::string> Assembler::assemble() {
 						if (isInteger(instruction[1]))
 							base = 10;
 
-						output.push_back(
-								convertQEndian(std::stoi(instruction[1], 0, base))[0]);
+						output.push_back(convertQEndian(stou(instruction[1], 0, base))[0]);
 					}
 
 					addr += 0x01;
@@ -403,7 +410,7 @@ Result<ByteArray, std::string> Assembler::assemble() {
 						if (isInteger(instruction[1]))
 							base = 10;
 
-						auto conv = convertQEndian(std::stoi(instruction[1], 0, base));
+						auto conv = convertQEndian(stou(instruction[1], 0, base));
 
 						output.push_back(conv[0]);
 						output.push_back(conv[1]);
@@ -433,7 +440,7 @@ Result<ByteArray, std::string> Assembler::assemble() {
 						if (isInteger(instruction[1]))
 							base = 10;
 
-						auto conv = convertQEndian(std::stoi(instruction[1], 0, base));
+						auto conv = convertQEndian(stou(instruction[1], 0, base));
 
 						output.push_back(conv[0]);
 						output.push_back(conv[1]);
@@ -446,6 +453,62 @@ Result<ByteArray, std::string> Assembler::assemble() {
 					return Result<ByteArray, std::string>::error(
 							std::format("[{}] Excepted a lvalue", line_num));
 				}
+			} else if (instruction[0] == "add") { // add
+				if (instruction.size() < 2) {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Invalid operand count", line_num));
+				}
+
+				Result<byte, std::string> left = processOperand(instruction[1]);
+				Result<byte, std::string> right = processOperand(instruction[2]);
+
+				if (left.is_error())
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] {}", line_num, left.get_error().value()));
+				if (right.is_error())
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] {}", line_num, right.get_error().value()));
+
+				output.push_back(left.get_success().value() + ADD_R0);
+				output.push_back(right.get_success().value());
+				addr += 0x02;
+			} else if (instruction[0] == "sub") { // sub
+				if (instruction.size() < 2) {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Invalid operand count", line_num));
+				}
+
+				Result<byte, std::string> left = processOperand(instruction[1]);
+				Result<byte, std::string> right = processOperand(instruction[2]);
+
+				if (left.is_error())
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] {}", line_num, left.get_error().value()));
+				if (right.is_error())
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] {}", line_num, right.get_error().value()));
+
+				output.push_back(left.get_success().value() + SUB_R0);
+				output.push_back(right.get_success().value());
+				addr += 0x02;
+			} else if (instruction[0] == "call") { // call
+				if (instruction.size() < 1) {
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] Invalid operand count", line_num));
+				}
+
+				Result<byte, std::string> left = processOperand(instruction[1]);
+
+				if (left.is_error())
+					return Result<ByteArray, std::string>::error(
+							std::format("[{}] {}", line_num, left.get_error().value()));
+
+				output.push_back(CALL);
+				output.push_back(left.get_success().value());
+				addr += 0x02;
+			} else if (instruction[0] == "qdb") { // qdb
+				output.push_back(QDB);
+				addr += 0x01;
 			} else {
 				return Result<ByteArray, std::string>::error(
 						std::format("[{}] Invalid instruction", line_num));

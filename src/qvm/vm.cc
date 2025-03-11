@@ -6,6 +6,8 @@
 #include <format>
 #include <typeinfo>
 
+#include "inst/add.h"
+#include "inst/call.h"
 #include "inst/cmp.h"
 #include "inst/jmp.h"
 #include "inst/lod.h"
@@ -13,6 +15,7 @@
 #include "inst/pop.h"
 #include "inst/push.h"
 #include "inst/str.h"
+#include "inst/sub.h"
 #include "qvm.h"
 #include "util.h"
 
@@ -326,6 +329,72 @@ InstConvResult VM::convertIntoInstruction() {
 				getRegisterNameFromIndex(bytes[2]));
 		result.success = true;
 		registers.ip += 3;
+		return result;
+	} else if (memory[registers.ip] >= ADD_R0 &&
+						 memory[registers.ip] <= ADD_IP) { // add
+		std::vector<byte> bytes = getForward(2);
+		if (bytes.empty())
+			return result;
+
+		AddInstruction *instruction = new AddInstruction();
+		instruction->dest = getRegisterFromIndex(bytes[0] - ADD_R0);
+		instruction->source = getRegisterFromIndex(bytes[1]);
+		result.output = instruction;
+
+		result.disassembly =
+				std::format("add {} {}", getRegisterNameFromIndex(bytes[0] - ADD_R0),
+										getRegisterNameFromIndex(bytes[1]));
+		result.success = true;
+		registers.ip += 2;
+		return result;
+	} else if (memory[registers.ip] >= SUB_R0 &&
+						 memory[registers.ip] <= SUB_IP) { // sub
+		std::vector<byte> bytes = getForward(2);
+		if (bytes.empty())
+			return result;
+
+		SubInstruction *instruction = new SubInstruction();
+		instruction->dest = getRegisterFromIndex(bytes[0] - SUB_R0);
+		instruction->source = getRegisterFromIndex(bytes[1]);
+		result.output = instruction;
+
+		result.disassembly =
+				std::format("sub {} {}", getRegisterNameFromIndex(bytes[0] - SUB_R0),
+										getRegisterNameFromIndex(bytes[1]));
+		result.success = true;
+		registers.ip += 2;
+		return result;
+	} else if (memory[registers.ip] == CALL) { // call
+		std::vector<byte> bytes = getForward(2);
+		if (bytes.empty())
+			return result;
+
+		CallInstruction *instruction = new CallInstruction();
+		instruction->dest = getRegisterFromIndex(bytes[1]);
+		result.output = instruction;
+
+		result.disassembly =
+				std::format("call {}", getRegisterNameFromIndex(bytes[1]));
+		result.success = true;
+		registers.ip += 2;
+		return result;
+	} else if (memory[registers.ip] == QDB) { // qdb
+		fprintState(stdout);
+
+		FILE *dmp = fopen("memory.dmp", "wb");
+
+		for (int i = 0; i < MEMORY_SIZE; i++) {
+			fprintf(dmp, "%c", memory[i]);
+		}
+
+		fclose(dmp);
+
+		printf("[qvm] memory dumped into memory.dmp\n");
+
+		result.disassembly = std::format("");
+		result.success = true;
+		registers.ip += 1;
+		return result;
 	}
 
 	return result;
