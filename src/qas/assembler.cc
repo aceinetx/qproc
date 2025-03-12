@@ -1,10 +1,76 @@
 #include "assembler.h"
+#include <regex>
+#include <registers.h>
 
 #include <format>
 
-#include "opcodes.h"
-#include "register.h"
-#include "util.h"
+#include <opcodes.h>
+#include <util.h>
+
+std::vector<std::string> split(std::string s, std::string delimiter) {
+	size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+	std::string token;
+	std::vector<std::string> res;
+
+	while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+		token = s.substr(pos_start, pos_end - pos_start);
+		pos_start = pos_end + delim_len;
+		res.push_back(token);
+	}
+
+	res.push_back(s.substr(pos_start));
+	return res;
+}
+
+std::string replaceAll(const std::string &str, const std::string &from,
+											 const std::string &to) {
+	if (from.empty())
+		return str; // Avoid empty substring case
+
+	std::string result = str; // Create a copy of the original string
+	size_t start_pos = 0;
+	while ((start_pos = result.find(from, start_pos)) != std::string::npos) {
+		result.replace(start_pos, from.length(), to);
+		start_pos += to.length(); // Move past the replaced part
+	}
+	return result; // Return the modified string
+}
+
+bool isHexString(std::string s) {
+	return std::regex_match(s, std::regex("^(0x|0X)?[a-fA-F0-9]+$")) &&
+				 (s.starts_with("0x") || s.starts_with("0X"));
+}
+
+bool isInteger(std::string s) {
+	for (char c : s)
+		if (!(c >= '0' && c <= '9'))
+			return false;
+	return true;
+}
+
+int convertQEndian(std::vector<byte> bytes) {
+	dword value = 0;
+	for (dword i = 0; i < 4; ++i) {
+		value |= (static_cast<dword>(bytes[i]) << (i * 8));
+	}
+	return value;
+}
+
+int convertQEndian(byte *bytes) {
+	dword value = 0;
+	for (dword i = 0; i < 4; ++i) {
+		value |= (static_cast<dword>(bytes[i]) << (i * 8));
+	}
+	return value;
+}
+
+std::vector<byte> convertQEndian(int n) {
+	std::vector<byte> bytes(sizeof(dword));
+	for (size_t i = 0; i < bytes.size(); ++i) {
+		bytes[i] = (n >> (i * 8)) & 0xFF;
+	}
+	return bytes;
+}
 
 unsigned stou(std::string const &str, size_t *idx = 0, int base = 10) {
 	unsigned long result = std::stoul(str, idx, base);
@@ -43,6 +109,13 @@ Result<byte, std::string> Assembler::processOperand(std::string operand) {
 Result<ByteArray, std::string> Assembler::doLabel(std::string operand) {
 	if (inPreprocessor)
 		return Result<ByteArray, std::string>::success(output);
+
+	if (operand == ".$") {
+		for (byte b : convertQEndian(addr)) {
+			output.push_back(b);
+		}
+		return Result<ByteArray, std::string>::success(output);
+	}
 
 	if (!labels.count(operand)) { // label does not exist
 		return Result<ByteArray, std::string>::error(
@@ -247,7 +320,7 @@ Result<ByteArray, std::string> Assembler::assemble() {
 
 				output.push_back(right.get_success().value());
 				addr += 0x03;
-			} else if (instruction[0] == "jmp") { // jmp
+			} else if (instruction[0] == "bmp") { // jmp
 				if (instruction.size() < 2) {
 					return Result<ByteArray, std::string>::error(
 							std::format("[{}] Invalid operand count", line_num));
@@ -292,21 +365,21 @@ Result<ByteArray, std::string> Assembler::assemble() {
 							std::format("[{}] Invalid operand count", line_num));
 				}
 
-				if (instruction[0] == "je") {
-					output.push_back(JE);
-				} else if (instruction[0] == "jne") {
-					output.push_back(JNE);
-				} else if (instruction[0] == "jl") {
-					output.push_back(JL);
-				} else if (instruction[0] == "jg") {
-					output.push_back(JG);
-				} else if (instruction[0] == "jle") {
-					output.push_back(JLE);
-				} else if (instruction[0] == "jge") {
-					output.push_back(JGE);
+				if (instruction[0] == "be") {
+					output.push_back(BE);
+				} else if (instruction[0] == "bne") {
+					output.push_back(BNE);
+				} else if (instruction[0] == "bl") {
+					output.push_back(BL);
+				} else if (instruction[0] == "bg") {
+					output.push_back(BG);
+				} else if (instruction[0] == "ble") {
+					output.push_back(BLE);
+				} else if (instruction[0] == "bge") {
+					output.push_back(BGE);
 				} else {
 					return Result<ByteArray, std::string>::error(std::format(
-							"[{}] Invalid instruction, excepted a jump kind instruction",
+							"[{}] Invalid instruction, excepted a branch kind instruction",
 							line_num));
 				}
 

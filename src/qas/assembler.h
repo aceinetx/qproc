@@ -2,8 +2,9 @@
 #include <map>
 #include <string>
 
+#include "qas.h"
 #include "qvm.h"
-#include "result.h"
+#include <result.hpp>
 
 class Assembler {
 private:

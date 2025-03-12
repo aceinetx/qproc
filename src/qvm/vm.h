@@ -1,50 +1,23 @@
 #pragma once
-#include <string>
-#include <vector>
+#include <qvm.h>
+#include <registers.h>
+#include <stdio.h>
 
-#include "instruction.h"
-#include "qvm.h"
-#include "register.h"
-
-enum class Exception {
-	NONE,
-	MEMORY_NOT_IN_BOUNDS,
-	ILLEGAL_REGISTER,
-};
-
-enum class DebugState {
-	NONE,
-	EXCEPTION,
-};
-
-class Instruction;
-typedef struct InstConvResult {
-	Instruction *output;
-	bool success;
-	std::string disassembly;
-} InstConvResult;
-
-class VM {
-public:
-	registers_t registers;
+typedef struct {
 	byte *memory;
-	word exception;
-	DebugState debug_state;
-	bool log_instructions;
-
-	struct flags_t {
+	registers regs;
+	struct {
 		byte CF;
 		byte ZF;
 	} flags;
+} VM;
 
-	std::vector<byte> getForward(int n);
-	InstConvResult convertIntoInstruction();
-	dword *getRegisterFromIndex(int index);
-	std::string getRegisterNameFromIndex(int index);
-	void execute();
-	void fprintState(FILE *descriptor);
-	bool handleException(Exception exception);
+VM *vm_new(void);
+void vm_delete(VM *vm);
 
-	VM();
-	~VM();
-};
+dword *vm_get_register_from_index(VM *vm, byte index);
+void vm_get_forward(VM *vm, byte **buf, byte n);
+void vm_do_instruction(VM *vm);
+void vm_run(VM *vm);
+
+void vm_fprint_state(VM *vm, FILE *fd);

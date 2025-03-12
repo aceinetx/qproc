@@ -6,12 +6,24 @@
 
 #include <format>
 #include <fstream>
+#include <istream>
+#include <sstream>
 #include <string>
 
 #include "assembler.h"
-#include "fs.h"
-#include "opcodes.h"
-#include "util.h"
+#include <util.h>
+
+Result<std::string, std::string> readFile(const std::string &filename) {
+	std::ifstream file(filename);
+	if (!file) {
+		return Result<std::string, std::string>::error("Reading failed");
+	}
+
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+
+	return Result<std::string, std::string>::success(buffer.str());
+}
 
 QasSettings settings;
 
@@ -74,7 +86,7 @@ int main(int argc, char **argv) {
 
 	std::ofstream output_file(settings.output_filename,
 														std::ios::binary | std::ios::out);
-	output_file.write((const char *) output.data(), output.size());
+	output_file.write((const char *)output.data(), output.size());
 	output_file.close();
 
 	printf("Assembled successfully\n");
