@@ -9,6 +9,8 @@ VM *vm_new(void) {
 	VM *vm = malloc(sizeof(VM));
 	vm->memory = malloc(MEMORY_SIZE);
 	memset(vm->memory, 0, MEMORY_SIZE);
+	memset(&vm->regs, 0, sizeof(registers));
+	memset(&vm->flags, 0, sizeof(vm->flags));
 
 	vm->last_disassembly = malloc(DISASM_STR_SIZE);
 	memset(vm->last_disassembly, 0, DISASM_STR_SIZE);
