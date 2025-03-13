@@ -1,5 +1,7 @@
 #include <as_lexer.h>
+#include <opcodes.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 CALLEOWNS Token *token_new() {
@@ -7,6 +9,7 @@ CALLEOWNS Token *token_new() {
 	tok->type = T_NUM;
 	tok->value_u = 0;
 	tok->value_i = 0;
+	tok->line = 0;
 	memset(tok->value_s, 0, LEXER_STR_MAX);
 	return tok;
 }
@@ -15,6 +18,8 @@ Lexer *lexer_new(char *code) {
 	Lexer *lexer = malloc(sizeof(Lexer));
 	lexer->code = code;
 	lexer->pos = 0;
+	lexer->code_len = strlen(lexer->code);
+	lexer->line = 1;
 
 	return lexer;
 }
@@ -34,10 +39,11 @@ bool is_letter(char c) {
 CALLEOWNS Token *lexer_number(Lexer *lexer) {
 	Token *tok = token_new();
 	tok->type = T_NUM;
+	tok->line = lexer->line;
 
 	bool is_hex = false;
 
-	while (lexer->pos <= strlen(lexer->code)) {
+	while (lexer->pos < lexer->code_len) {
 		char c = lexer->code[lexer->pos];
 		if (!is_digit(c) && !is_hex) {
 			if (c == 'x') {
@@ -98,10 +104,11 @@ CALLEOWNS Token *lexer_number(Lexer *lexer) {
 
 CALLEOWNS Token *lexer_identifier(Lexer *lexer) {
 	Token *tok = token_new();
-	tok->type = T_INSTRUCTION;
+	tok->type = T_IDENTIFIER;
+	tok->line = lexer->line;
 
 	size_t len = strlen(tok->value_s);
-	while (lexer->pos <= strlen(lexer->code) && len < LEXER_STR_MAX) {
+	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
 
 		if (!is_letter(c) && !is_digit(c)) {
@@ -125,6 +132,15 @@ CALLEOWNS Token *lexer_identifier(Lexer *lexer) {
 		tok->type = T_REGISTER;
 	} else if (strcmp(tok->value_s, "ip") == 0) {
 		tok->type = T_REGISTER;
+	} else if (strcmp(tok->value_s, "dword") == 0) {
+		tok->type = T_SIZE;
+		tok->value_u = SS_DWORD;
+	} else if (strcmp(tok->value_s, "word") == 0) {
+		tok->type = T_SIZE;
+		tok->value_u = SS_WORD;
+	} else if (strcmp(tok->value_s, "byte") == 0) {
+		tok->type = T_SIZE;
+		tok->value_u = SS_BYTE;
 	}
 
 	return tok;
@@ -133,9 +149,10 @@ CALLEOWNS Token *lexer_identifier(Lexer *lexer) {
 CALLEOWNS Token *lexer_directive(Lexer *lexer) {
 	Token *tok = token_new();
 	tok->type = T_DIRECTIVE;
+	tok->line = lexer->line;
 
 	size_t len = strlen(tok->value_s);
-	while (lexer->pos <= strlen(lexer->code) && len < LEXER_STR_MAX) {
+	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
 
 		if (!is_letter(c) && !is_digit(c) && c != '#') {
@@ -154,10 +171,11 @@ CALLEOWNS Token *lexer_directive(Lexer *lexer) {
 CALLEOWNS Token *lexer_string(Lexer *lexer) {
 	Token *tok = token_new();
 	tok->type = T_STRING;
+	tok->line = lexer->line;
 
 	size_t len = strlen(tok->value_s);
 	bool definition = false;
-	while (lexer->pos <= strlen(lexer->code) && len < LEXER_STR_MAX) {
+	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
 
 		if (!is_letter(c) && !is_digit(c)) {
@@ -185,20 +203,29 @@ CALLEOWNS Token *lexer_string(Lexer *lexer) {
 }
 
 CALLEOWNS Token *lexer_next(Lexer *lexer) {
-	while (lexer->pos <= strlen(lexer->code)) {
+	while (lexer->pos < lexer->code_len) {
 		char c = lexer->code[lexer->pos];
-		if (is_digit(c)) {
-			return lexer_number(lexer);
+		Token *token = NULL;
+
+		if (c == '\n') {
+			lexer->line++;
+		} else if (is_digit(c)) {
+			token = lexer_number(lexer);
 		} else if (is_letter(c)) {
-			return lexer_identifier(lexer);
+			token = lexer_identifier(lexer);
 		} else if (c == '#') {
-			return lexer_directive(lexer);
+			token = lexer_directive(lexer);
 		} else if (c == '"') {
-			return lexer_string(lexer);
+			token = lexer_string(lexer);
 		}
+
+		if (token != NULL)
+			return token;
+
 		lexer->pos++;
 	}
 	Token *tok = token_new();
 	tok->type = T_EOF;
+	tok->line = lexer->line;
 	return tok;
 }

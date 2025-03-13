@@ -17,4 +17,4 @@ endif()
 
 include_directories("src/qvm" "src/qas" "src")
 add_executable("qvm" ${QVM_SOURCES} ${SOURCES})
-add_executable("qas" ${QAS_SOURCES} ${SOURCES})
+add_executable("qas" ${QAS_SOURCES} ${SOURCES} "src/qvm/endian.c")

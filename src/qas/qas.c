@@ -43,13 +43,18 @@ int main(int argc, char **argv) {
 	dword size;
 	byte *buf = fs_read(filename, &size);
 	if (buf) {
+		FILE *out = fopen(output_filename, "w");
+
 		Lexer *lexer = lexer_new((char *)buf);
-		Assembler *assembler = assembler_new(stdout, lexer);
+		Assembler *assembler = assembler_new(out, lexer);
 
 		assembler_assemble(assembler);
 
 		assembler_delete(assembler);
 		lexer_delete(lexer);
+
+		fclose(out);
+		free(buf);
 	} else {
 		printf("[qvm] failed to read a file\n");
 		return EXIT_FAILURE;

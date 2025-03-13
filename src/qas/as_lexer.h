@@ -7,21 +7,25 @@ typedef enum {
 	T_NUM,
 	T_LABEL,
 	T_REGISTER,
-	T_INSTRUCTION,
+	T_IDENTIFIER,
 	T_DIRECTIVE,
 	T_STRING,
+	T_SIZE,
 } TokenType;
 
 typedef struct {
 	TokenType type;
 	char value_s[LEXER_STR_MAX];
 	int32_t value_i;
-	uint32_t value_u;
+	dword value_u;
+	dword line;
 } Token;
 
 typedef struct {
 	dword pos;
 	char *code;
+	dword code_len;
+	dword line;
 } Lexer;
 
 Lexer *lexer_new(char *code);

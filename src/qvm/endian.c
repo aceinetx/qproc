@@ -16,3 +16,9 @@ byte *toQendian(int n) {
 	}
 	return bytes;
 }
+
+void ftoQendian(FILE *fd, int n) {
+	for (size_t i = 0; i < 4; ++i) {
+		fprintf(fd, "%c", (n >> (i * 8)) & 0xFF);
+	}
+}
