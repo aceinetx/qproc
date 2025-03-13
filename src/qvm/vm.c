@@ -156,7 +156,7 @@ void vm_do_instruction(VM *vm) {
 	} else if (first_byte >= MOVI_R0 && first_byte <= MOVI_IP) {
 		vm_get_forward(vm, &bytes, 5);
 
-		vm_movc(vm, vm_get_register_from_index(vm, first_byte - MOVI_R0), fromQendian(&bytes[1]));
+		vm_movi(vm, vm_get_register_from_index(vm, first_byte - MOVI_R0), fromQendian(&bytes[1]));
 
 		char *a = vm_get_regname_from_index(vm, first_byte);
 		dword b = fromQendian(&bytes[1]);
@@ -189,7 +189,7 @@ void vm_do_instruction(VM *vm) {
 	} else if (first_byte == PUSHI) {
 		vm_get_forward(vm, &bytes, 5);
 
-		vm_pushc(vm, fromQendian(&(bytes[1])));
+		vm_pushi(vm, fromQendian(&(bytes[1])));
 
 		free(bytes);
 	} else if (first_byte == POP) {
@@ -254,9 +254,24 @@ void vm_do_instruction(VM *vm) {
 
 		vm_call(vm, vm_get_register_from_index(vm, bytes[1]));
 		free(bytes);
+	} else if (first_byte == CALLI) {
+		vm_get_forward(vm, &bytes, 5);
+
+		vm_calli(vm, fromQendian(&bytes[1]));
+		free(bytes);
 	} else if (first_byte == QDB) {
 		vm_fprint_state(vm, stdout);
 		vm->regs.ip++;
+	} else if (first_byte >= MUL_R0 && first_byte <= MUL_IP) {
+		vm_get_forward(vm, &bytes, 2);
+
+		vm_mul(vm, vm_get_register_from_index(vm, bytes[0] - MUL_R0), vm_get_register_from_index(vm, bytes[1]));
+		free(bytes);
+	} else if (first_byte >= DIV_R0 && first_byte <= DIV_IP) {
+		vm_get_forward(vm, &bytes, 2);
+
+		vm_mul(vm, vm_get_register_from_index(vm, bytes[0] - DIV_R0), vm_get_register_from_index(vm, bytes[1]));
+		free(bytes);
 	} else {
 		printf("[qvm] illegal instruction\n");
 		vm->regs.ip = 0xffffffff;

@@ -5,7 +5,7 @@ void vm_mov(VM *vm, dword *dest, dword *src) {
 	*dest = *src;
 }
 
-void vm_movc(VM *vm, dword *dest, dword src) {
+void vm_movi(VM *vm, dword *dest, dword src) {
 	*dest = src;
 }
 
@@ -51,7 +51,7 @@ void vm_cmp(VM *vm, dword *left, dword *right) {
 		vm->flags.CF = 1;
 }
 
-void vm_pushc(VM *vm, dword source) {
+void vm_pushi(VM *vm, dword source) {
 	memcpy(&(vm->memory[vm->regs.sp - 4]), &source, 4);
 	vm->regs.sp -= 4;
 }
@@ -74,9 +74,22 @@ void vm_sub(VM *vm, dword *dest, dword *source) {
 	*dest -= *source;
 }
 
+void vm_mul(VM *vm, dword *dest, dword *source) {
+	*dest *= *source;
+}
+
+void vm_div(VM *vm, dword *dest, dword *source) {
+	*dest /= *source;
+}
+
 void vm_call(VM *vm, dword *dest) {
-	vm_pushc(vm, vm->regs.ip);
+	vm_pushi(vm, vm->regs.ip);
 	vm->regs.ip = *dest;
+}
+
+void vm_calli(VM *vm, dword dest) {
+	vm_pushi(vm, vm->regs.ip);
+	vm->regs.ip = dest;
 }
 
 void vm_be(VM *vm, dword dest) {

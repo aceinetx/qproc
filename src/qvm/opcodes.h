@@ -44,6 +44,9 @@ enum {
 	CALLI,
 
 	QDB,
+
+	OPCODE_R(MUL),
+	OPCODE_R(DIV),
 };
 
 #undef OPCODE_R
