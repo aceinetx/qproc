@@ -1,28 +1,22 @@
 #pragma once
-#include <map>
-#include <string>
+#include <as_lexer.h>
+#include <qvm.h>
+#include <stdio.h>
 
-#include "qas.h"
-#include "qvm.h"
-#include <result.hpp>
-
-class Assembler {
-private:
-	ByteArray output;
-	bool inPreprocessor;
-	int line_num;
-
-public:
-	std::string code;
+typedef struct {
+	char name[LEXER_STR_MAX];
 	dword addr;
-	std::map<std::string, dword> labels;
+} Label;
 
-	Result<ByteArray, std::string> doLabel(std::string operand);
+typedef struct {
+	FILE *out;
+	Lexer *lexer;
+	dword addr;
+	Label *labels;
+} Assembler;
 
-	Assembler(std::string code = "");
+Assembler *assembler_new(FILE *out, Lexer *lexer);
+void assembler_delete(Assembler *assembler);
 
-	Result<byte, std::string> processOperand(std::string operand);
-	Result<ByteArray, std::string> assemble();
-
-	~Assembler();
-};
+void assembler_add_label(Assembler *assembler, Label label);
+void assembler_assemble(Assembler *assembler);
