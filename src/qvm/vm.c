@@ -10,6 +10,9 @@ VM *vm_new(void) {
 	vm->memory = malloc(MEMORY_SIZE);
 	memset(vm->memory, 0, MEMORY_SIZE);
 
+	vm->last_disassembly = malloc(DISASM_STR_SIZE);
+	memset(vm->last_disassembly, 0, DISASM_STR_SIZE);
+
 	vm->regs.sp = MEMORY_SIZE;
 	vm->regs.bp = vm->regs.sp;
 	vm->regs.ip = 0;
@@ -21,6 +24,7 @@ VM *vm_new(void) {
 
 void vm_delete(VM *vm) {
 	free(vm->memory);
+	free(vm->last_disassembly);
 	free(vm);
 
 	printf("[qvm] VM delete\n");
@@ -66,6 +70,64 @@ dword *vm_get_register_from_index(VM *vm, byte index) {
 	return &vm->regs.r0;
 }
 
+CALLEOWNS char *vm_get_regname_from_index(VM *vm, byte index) {
+	char *buf = malloc(4);
+	switch (index) {
+	case 0:
+		strncpy(buf, "r0", 3);
+		break;
+	case 1:
+		strncpy(buf, "r1", 3);
+		break;
+	case 2:
+		strncpy(buf, "r2", 3);
+		break;
+	case 3:
+		strncpy(buf, "r3", 3);
+		break;
+	case 4:
+		strncpy(buf, "r4", 3);
+		break;
+	case 5:
+		strncpy(buf, "r5", 3);
+		break;
+	case 6:
+		strncpy(buf, "r6", 3);
+		break;
+	case 7:
+		strncpy(buf, "r7", 3);
+		break;
+	case 8:
+		strncpy(buf, "r8", 3);
+		break;
+	case 9:
+		strncpy(buf, "r9", 3);
+		break;
+	case 10:
+		strncpy(buf, "r10", 3);
+		break;
+	case 11:
+		strncpy(buf, "r11", 3);
+		break;
+	case 12:
+		strncpy(buf, "r12", 3);
+		break;
+	case 13:
+		strncpy(buf, "sp", 3);
+		break;
+	case 14:
+		strncpy(buf, "bp", 3);
+		break;
+	case 15:
+		strncpy(buf, "ip", 3);
+		break;
+	default:
+		strncpy(buf, "???", 3);
+		break;
+	}
+	return buf;
+}
+
 void vm_get_forward(VM *vm, byte **buf, byte n) {
 	*buf = malloc(n);
 	dword start = vm->regs.ip;
@@ -82,14 +144,25 @@ void vm_do_instruction(VM *vm) {
 	if (first_byte >= MOV_R0 && first_byte <= MOV_IP) {
 		vm_get_forward(vm, &bytes, 2);
 
-		vm_mov(vm, vm_get_register_from_index(vm, first_byte - MOV_R0),
-					 vm_get_register_from_index(vm, bytes[1]));
+		vm_mov(vm, vm_get_register_from_index(vm, first_byte - MOV_R0), vm_get_register_from_index(vm, bytes[1]));
+
+		char *a = vm_get_regname_from_index(vm, first_byte);
+		char *b = vm_get_regname_from_index(vm, bytes[1]);
+		snprintf(vm->last_disassembly, DISASM_STR_SIZE, "mov %s %s", a, b);
+		free(a);
+		free(b);
+
 		free(bytes);
-	} else if (first_byte >= MOVC_R0 && first_byte <= MOVC_IP) {
+	} else if (first_byte >= MOVI_R0 && first_byte <= MOVI_IP) {
 		vm_get_forward(vm, &bytes, 5);
 
-		vm_movc(vm, vm_get_register_from_index(vm, first_byte - MOVC_R0),
-						fromQendian(&bytes[1]));
+		vm_movc(vm, vm_get_register_from_index(vm, first_byte - MOVI_R0), fromQendian(&bytes[1]));
+
+		char *a = vm_get_regname_from_index(vm, first_byte);
+		dword b = fromQendian(&bytes[1]);
+		snprintf(vm->last_disassembly, DISASM_STR_SIZE, "mov %s %d  @ movi %s %d", a, b, a, b);
+		free(a);
+
 		free(bytes);
 	} else if (first_byte == HLT) {
 		vm->regs.ip = 0xffffffff;
@@ -100,14 +173,12 @@ void vm_do_instruction(VM *vm) {
 	} else if (first_byte >= LOD_R0 && first_byte <= LOD_IP) {
 		vm_get_forward(vm, &bytes, 3);
 
-		vm_lod(vm, vm_get_register_from_index(vm, bytes[2]),
-					 vm_get_register_from_index(vm, first_byte - LOD_R0), bytes[1]);
+		vm_lod(vm, vm_get_register_from_index(vm, bytes[2]), vm_get_register_from_index(vm, first_byte - LOD_R0), bytes[1]);
 		free(bytes);
 	} else if (first_byte >= CMP_R0 && first_byte <= CMP_IP) {
 		vm_get_forward(vm, &bytes, 2);
 
-		vm_cmp(vm, vm_get_register_from_index(vm, first_byte - CMP_R0),
-					 vm_get_register_from_index(vm, bytes[1]));
+		vm_cmp(vm, vm_get_register_from_index(vm, first_byte - CMP_R0), vm_get_register_from_index(vm, bytes[1]));
 		free(bytes);
 	} else if (first_byte == PUSH) {
 		vm_get_forward(vm, &bytes, 2);
@@ -115,7 +186,7 @@ void vm_do_instruction(VM *vm) {
 		vm_push(vm, vm_get_register_from_index(vm, bytes[1]));
 
 		free(bytes);
-	} else if (first_byte == PUSHC) {
+	} else if (first_byte == PUSHI) {
 		vm_get_forward(vm, &bytes, 5);
 
 		vm_pushc(vm, fromQendian(&(bytes[1])));
@@ -166,28 +237,29 @@ void vm_do_instruction(VM *vm) {
 	} else if (first_byte >= STR_R0 && first_byte <= STR_IP) {
 		vm_get_forward(vm, &bytes, 3);
 
-		vm_str(vm, vm_get_register_from_index(vm, bytes[0] - STR_R0),
-					 vm_get_register_from_index(vm, bytes[2]), bytes[1]);
+		vm_str(vm, vm_get_register_from_index(vm, bytes[0] - STR_R0), vm_get_register_from_index(vm, bytes[2]), bytes[1]);
 		free(bytes);
 	} else if (first_byte >= ADD_R0 && first_byte <= ADD_IP) {
 		vm_get_forward(vm, &bytes, 2);
 
-		vm_add(vm, vm_get_register_from_index(vm, bytes[0] - ADD_R0),
-					 vm_get_register_from_index(vm, bytes[1]));
+		vm_add(vm, vm_get_register_from_index(vm, bytes[0] - ADD_R0), vm_get_register_from_index(vm, bytes[1]));
 		free(bytes);
 	} else if (first_byte >= SUB_R0 && first_byte <= SUB_IP) {
 		vm_get_forward(vm, &bytes, 2);
 
-		vm_sub(vm, vm_get_register_from_index(vm, bytes[0] - SUB_R0),
-					 vm_get_register_from_index(vm, bytes[1]));
+		vm_sub(vm, vm_get_register_from_index(vm, bytes[0] - SUB_R0), vm_get_register_from_index(vm, bytes[1]));
 		free(bytes);
 	} else if (first_byte == CALL) {
 		vm_get_forward(vm, &bytes, 2);
 
 		vm_call(vm, vm_get_register_from_index(vm, bytes[1]));
 		free(bytes);
+	} else if (first_byte == QDB) {
+		vm_fprint_state(vm, stdout);
+		vm->regs.ip++;
 	} else {
 		printf("[qvm] illegal instruction\n");
+		vm->regs.ip = 0xffffffff;
 	}
 }
 
@@ -198,6 +270,22 @@ void vm_run(VM *vm) {
 }
 
 void vm_fprint_state(VM *vm, FILE *fd) {
-	fprintf(fd, "[qvm] VM state:");
-	fprintf(fd, "[qvm] R0: %d");
+	fprintf(fd, "[qvm] VM state:\n");
+	fprintf(fd, "[qvm] R0: 0x%x", vm->regs.r0);
+	fprintf(fd, " R1: 0x%x", vm->regs.r1);
+	fprintf(fd, " R2: 0x%x", vm->regs.r2);
+	fprintf(fd, " R3: 0x%x", vm->regs.r3);
+	fprintf(fd, " R4: 0x%x", vm->regs.r4);
+	fprintf(fd, "\n[qvm] R5: 0x%x", vm->regs.r5);
+	fprintf(fd, " R6: 0x%x", vm->regs.r6);
+	fprintf(fd, " R7: 0x%x", vm->regs.r7);
+	fprintf(fd, " R8: 0x%x", vm->regs.r8);
+	fprintf(fd, " R9: 0x%x", vm->regs.r9);
+	fprintf(fd, "\n[qvm] R10: 0x%x", vm->regs.r10);
+	fprintf(fd, " R11: 0x%x", vm->regs.r11);
+	fprintf(fd, " R12: 0x%x", vm->regs.r12);
+	fprintf(fd, "\n[qvm] SP: 0x%x", vm->regs.sp);
+	fprintf(fd, " BP: 0x%x", vm->regs.bp);
+	fprintf(fd, " IP: 0x%x", vm->regs.ip);
+	fprintf(fd, "\n[qvm] ZF: 0x%x CF: 0x%x\n", vm->flags.ZF, vm->flags.CF);
 }

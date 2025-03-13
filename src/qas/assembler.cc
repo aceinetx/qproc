@@ -22,8 +22,7 @@ std::vector<std::string> split(std::string s, std::string delimiter) {
 	return res;
 }
 
-std::string replaceAll(const std::string &str, const std::string &from,
-											 const std::string &to) {
+std::string replaceAll(const std::string &str, const std::string &from, const std::string &to) {
 	if (from.empty())
 		return str; // Avoid empty substring case
 
@@ -37,8 +36,7 @@ std::string replaceAll(const std::string &str, const std::string &from,
 }
 
 bool isHexString(std::string s) {
-	return std::regex_match(s, std::regex("^(0x|0X)?[a-fA-F0-9]+$")) &&
-				 (s.starts_with("0x") || s.starts_with("0X"));
+	return std::regex_match(s, std::regex("^(0x|0X)?[a-fA-F0-9]+$")) && (s.starts_with("0x") || s.starts_with("0X"));
 }
 
 bool isInteger(std::string s) {
@@ -96,6 +94,22 @@ Result<byte, std::string> Assembler::processOperand(std::string operand) {
 		return Result<byte, std::string>::success(R3);
 	} else if (operand == "r4") {
 		return Result<byte, std::string>::success(R4);
+	} else if (operand == "r5") {
+		return Result<byte, std::string>::success(R5);
+	} else if (operand == "r6") {
+		return Result<byte, std::string>::success(R6);
+	} else if (operand == "r7") {
+		return Result<byte, std::string>::success(R7);
+	} else if (operand == "r8") {
+		return Result<byte, std::string>::success(R8);
+	} else if (operand == "r9") {
+		return Result<byte, std::string>::success(R9);
+	} else if (operand == "r10") {
+		return Result<byte, std::string>::success(R10);
+	} else if (operand == "r11") {
+		return Result<byte, std::string>::success(R11);
+	} else if (operand == "r12") {
+		return Result<byte, std::string>::success(R12);
 	} else if (operand == "sp") {
 		return Result<byte, std::string>::success(SP);
 	} else if (operand == "bp") {
@@ -118,8 +132,7 @@ Result<ByteArray, std::string> Assembler::doLabel(std::string operand) {
 	}
 
 	if (!labels.count(operand)) { // label does not exist
-		return Result<ByteArray, std::string>::error(
-				std::format("Undefined label"));
+		return Result<ByteArray, std::string>::error(std::format("Undefined label"));
 	}
 	for (byte b : convertQEndian(labels[operand])) {
 		output.push_back(b);
@@ -167,24 +180,20 @@ Result<ByteArray, std::string> Assembler::assemble() {
 			std::vector<std::string> instruction = split(line, " ");
 			if (instruction[0] == "mov") { // mov
 				if (instruction.size() < 3) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
-				if (isHexString(instruction[2]) || isInteger(instruction[2]) ||
-						instruction[2][0] == '.') { // movc
+				if (isHexString(instruction[2]) || isInteger(instruction[2]) || instruction[2][0] == '.') { // movc
 					Result<byte, std::string> left = processOperand(instruction[1]);
 					if (left.is_error())
-						return Result<ByteArray, std::string>::error(
-								std::format("[{}] {}", line_num, left.get_error().value()));
+						return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, left.get_error().value()));
 
-					output.push_back(MOVC_R0 + left.get_success().value());
+					output.push_back(MOVI_R0 + left.get_success().value());
 
 					if (instruction[2][0] == '.') { // if a label
 						auto result = doLabel(instruction[2]);
 						if (result.is_error()) {
-							return Result<ByteArray, std::string>::error(
-									std::format("[{}] {}", line_num, result.get_error().value()));
+							return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, result.get_error().value()));
 						}
 					} else {
 						int base = 16;
@@ -202,12 +211,10 @@ Result<ByteArray, std::string> Assembler::assemble() {
 					Result<byte, std::string> right = processOperand(instruction[2]);
 
 					if (left.is_error())
-						return Result<ByteArray, std::string>::error(
-								std::format("[{}] {}", line_num, left.get_error().value()));
+						return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, left.get_error().value()));
 
 					if (right.is_error())
-						return Result<ByteArray, std::string>::error(
-								std::format("[{}] {}", line_num, right.get_error().value()));
+						return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, right.get_error().value()));
 
 					output.push_back(MOV_R0 + left.get_success().value());
 					output.push_back(right.get_success().value());
@@ -215,19 +222,16 @@ Result<ByteArray, std::string> Assembler::assemble() {
 				}
 			} else if (instruction[0] == "push") { // push
 				if (instruction.size() < 2) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
 				output.push_back(PUSH);
 
-				if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
-						instruction[1][0] == '.') {		// pushc
-					if (instruction[1][0] == '.') { // if a label
+				if (isHexString(instruction[1]) || isInteger(instruction[1]) || instruction[1][0] == '.') { // pushc
+					if (instruction[1][0] == '.') {																														// if a label
 						auto result = doLabel(instruction[1]);
 						if (result.is_error()) {
-							return Result<ByteArray, std::string>::error(
-									std::format("[{}] {}", line_num, result.get_error().value()));
+							return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, result.get_error().value()));
 						}
 					} else {
 						int base = 16;
@@ -244,27 +248,23 @@ Result<ByteArray, std::string> Assembler::assemble() {
 					Result<byte, std::string> op = processOperand(instruction[1]);
 
 					if (op.is_error())
-						return Result<ByteArray, std::string>::error(
-								std::format("[{}] {}", line_num, op.get_error().value()));
+						return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, op.get_error().value()));
 
 					output.push_back(op.get_success().value());
 					addr += 0x02;
 				}
 			} else if (instruction[0] == "cmp") { // cmp
 				if (instruction.size() < 2) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
 				Result<byte, std::string> left = processOperand(instruction[1]);
 				Result<byte, std::string> right = processOperand(instruction[2]);
 
 				if (left.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, left.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, left.get_error().value()));
 				if (right.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, right.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, right.get_error().value()));
 
 				output.push_back(left.get_success().value() + CMP_R0);
 				output.push_back(right.get_success().value());
@@ -275,36 +275,35 @@ Result<ByteArray, std::string> Assembler::assemble() {
 			} else if (instruction[0] == "nop") { // nop
 				output.push_back(NOP);
 				addr += 0x01;
+			} else if (instruction[0] == "ret") { // ret
+				output.push_back(POP);
+				output.push_back(IP);
+				addr += 0x02;
 			} else if (instruction[0] == "pop") { // pop
 				if (instruction.size() < 2) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
 				output.push_back(POP);
 				Result<byte, std::string> op = processOperand(instruction[1]);
 
 				if (op.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, op.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, op.get_error().value()));
 
 				output.push_back(op.get_success().value());
 				addr += 0x02;
 			} else if (instruction[0] == "lod") { // lod
 				if (instruction.size() < 4) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
 				Result<byte, std::string> left = processOperand(instruction[3]);
 				Result<byte, std::string> right = processOperand(instruction[1]);
 
 				if (left.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, left.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, left.get_error().value()));
 				if (right.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, right.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, right.get_error().value()));
 
 				output.push_back(LOD_R0 + left.get_success().value());
 				if (instruction[2] == "dword") {
@@ -314,28 +313,24 @@ Result<ByteArray, std::string> Assembler::assemble() {
 				} else if (instruction[2] == "byte") {
 					output.push_back(0x02);
 				} else {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid size specifier", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid size specifier", line_num));
 				}
 
 				output.push_back(right.get_success().value());
 				addr += 0x03;
-			} else if (instruction[0] == "bmp") { // jmp
+			} else if (instruction[0] == "b") { // branch
 				if (instruction.size() < 2) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
-				if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
-						instruction[1][0] == '.') { // jmp constant
+				if (isHexString(instruction[1]) || isInteger(instruction[1]) || instruction[1][0] == '.') { // branch constant
 
-					output.push_back(MOVC_IP);
+					output.push_back(MOVI_IP);
 
 					if (instruction[1][0] == '.') { // if a label
 						auto result = doLabel(instruction[1]);
 						if (result.is_error()) {
-							return Result<ByteArray, std::string>::error(
-									std::format("[{}] {}", line_num, result.get_error().value()));
+							return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, result.get_error().value()));
 						}
 					} else {
 						int base = 16;
@@ -352,17 +347,15 @@ Result<ByteArray, std::string> Assembler::assemble() {
 					Result<byte, std::string> left = processOperand(instruction[1]);
 
 					if (left.is_error())
-						return Result<ByteArray, std::string>::error(
-								std::format("[{}] {}", line_num, left.get_error().value()));
+						return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, left.get_error().value()));
 
 					output.push_back(MOV_IP);
 					output.push_back(left.get_success().value());
 					addr += 0x02;
 				}
-			} else if (instruction[0][0] == 'j') { // jmps
+			} else if (instruction[0][0] == 'b') { // branches
 				if (instruction.size() < 2) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
 				if (instruction[0] == "be") {
@@ -378,19 +371,15 @@ Result<ByteArray, std::string> Assembler::assemble() {
 				} else if (instruction[0] == "bge") {
 					output.push_back(BGE);
 				} else {
-					return Result<ByteArray, std::string>::error(std::format(
-							"[{}] Invalid instruction, excepted a branch kind instruction",
-							line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid instruction, excepted a branch kind instruction", line_num));
 				}
 
-				if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
-						instruction[1][0] == '.') { // constant
+				if (isHexString(instruction[1]) || isInteger(instruction[1]) || instruction[1][0] == '.') { // constant
 					output.push_back(0xff);
 					if (instruction[1][0] == '.') { // if a label
 						auto result = doLabel(instruction[1]);
 						if (result.is_error()) {
-							return Result<ByteArray, std::string>::error(
-									std::format("[{}] {}", line_num, result.get_error().value()));
+							return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, result.get_error().value()));
 						}
 					} else {
 						int base = 16;
@@ -407,27 +396,23 @@ Result<ByteArray, std::string> Assembler::assemble() {
 					Result<byte, std::string> op = processOperand(instruction[1]);
 
 					if (op.is_error())
-						return Result<ByteArray, std::string>::error(
-								std::format("[{}] {}", line_num, op.get_error().value()));
+						return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, op.get_error().value()));
 
 					output.push_back(op.get_success().value());
 					addr += 0x02;
 				}
 			} else if (instruction[0] == "str") { // str
 				if (instruction.size() < 4) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
 				Result<byte, std::string> left = processOperand(instruction[2]);
 				Result<byte, std::string> right = processOperand(instruction[3]);
 
 				if (left.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, left.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, left.get_error().value()));
 				if (right.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, right.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, right.get_error().value()));
 
 				output.push_back(STR_R0 + left.get_success().value());
 				if (instruction[1] == "dword") {
@@ -437,23 +422,19 @@ Result<ByteArray, std::string> Assembler::assemble() {
 				} else if (instruction[1] == "byte") {
 					output.push_back(0x02);
 				} else {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid size specifier", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid size specifier", line_num));
 				}
 
 				output.push_back(right.get_success().value());
 				addr += 0x03;
 			} else if (instruction[0] == "byte") { // byte
 				if (instruction.size() < 2) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
-				if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
-						instruction[1][0] == '.') {
+				if (isHexString(instruction[1]) || isInteger(instruction[1]) || instruction[1][0] == '.') {
 					if (instruction[1][0] == '.') { // if a label
-						return Result<ByteArray, std::string>::error(
-								std::format("[{}] Label cannot fit into a byte", line_num));
+						return Result<ByteArray, std::string>::error(std::format("[{}] Label cannot fit into a byte", line_num));
 					} else {
 						int base = 16;
 						if (isInteger(instruction[1]))
@@ -464,20 +445,16 @@ Result<ByteArray, std::string> Assembler::assemble() {
 
 					addr += 0x01;
 				} else {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Excepted a lvalue", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Excepted a lvalue", line_num));
 				}
 			} else if (instruction[0] == "word") { // word
 				if (instruction.size() < 2) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
-				if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
-						instruction[1][0] == '.') {
+				if (isHexString(instruction[1]) || isInteger(instruction[1]) || instruction[1][0] == '.') {
 					if (instruction[1][0] == '.') { // if a label
-						return Result<ByteArray, std::string>::error(
-								std::format("[{}] Label cannot fit into a word", line_num));
+						return Result<ByteArray, std::string>::error(std::format("[{}] Label cannot fit into a word", line_num));
 					} else {
 						int base = 16;
 						if (isInteger(instruction[1]))
@@ -491,22 +468,18 @@ Result<ByteArray, std::string> Assembler::assemble() {
 
 					addr += 0x02;
 				} else {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Excepted a lvalue", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Excepted a lvalue", line_num));
 				}
 			} else if (instruction[0] == "dword") { // dword
 				if (instruction.size() < 2) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
-				if (isHexString(instruction[1]) || isInteger(instruction[1]) ||
-						instruction[1][0] == '.') {
+				if (isHexString(instruction[1]) || isInteger(instruction[1]) || instruction[1][0] == '.') {
 					if (instruction[1][0] == '.') { // if a label
 						auto result = doLabel(instruction[1]);
 						if (result.is_error()) {
-							return Result<ByteArray, std::string>::error(
-									std::format("[{}] {}", line_num, result.get_error().value()));
+							return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, result.get_error().value()));
 						}
 					} else {
 						int base = 16;
@@ -523,58 +496,49 @@ Result<ByteArray, std::string> Assembler::assemble() {
 
 					addr += 0x04;
 				} else {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Excepted a lvalue", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Excepted a lvalue", line_num));
 				}
 			} else if (instruction[0] == "add") { // add
 				if (instruction.size() < 2) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
 				Result<byte, std::string> left = processOperand(instruction[1]);
 				Result<byte, std::string> right = processOperand(instruction[2]);
 
 				if (left.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, left.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, left.get_error().value()));
 				if (right.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, right.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, right.get_error().value()));
 
 				output.push_back(left.get_success().value() + ADD_R0);
 				output.push_back(right.get_success().value());
 				addr += 0x02;
 			} else if (instruction[0] == "sub") { // sub
 				if (instruction.size() < 2) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
 				Result<byte, std::string> left = processOperand(instruction[1]);
 				Result<byte, std::string> right = processOperand(instruction[2]);
 
 				if (left.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, left.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, left.get_error().value()));
 				if (right.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, right.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, right.get_error().value()));
 
 				output.push_back(left.get_success().value() + SUB_R0);
 				output.push_back(right.get_success().value());
 				addr += 0x02;
 			} else if (instruction[0] == "call") { // call
 				if (instruction.size() < 1) {
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] Invalid operand count", line_num));
+					return Result<ByteArray, std::string>::error(std::format("[{}] Invalid operand count", line_num));
 				}
 
 				Result<byte, std::string> left = processOperand(instruction[1]);
 
 				if (left.is_error())
-					return Result<ByteArray, std::string>::error(
-							std::format("[{}] {}", line_num, left.get_error().value()));
+					return Result<ByteArray, std::string>::error(std::format("[{}] {}", line_num, left.get_error().value()));
 
 				output.push_back(CALL);
 				output.push_back(left.get_success().value());
@@ -583,8 +547,7 @@ Result<ByteArray, std::string> Assembler::assemble() {
 				output.push_back(QDB);
 				addr += 0x01;
 			} else {
-				return Result<ByteArray, std::string>::error(
-						std::format("[{}] Invalid instruction", line_num));
+				return Result<ByteArray, std::string>::error(std::format("[{}] Invalid instruction", line_num));
 			}
 		}
 		if (inPreprocessor == false)

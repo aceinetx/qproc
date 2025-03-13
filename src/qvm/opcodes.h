@@ -14,7 +14,7 @@ enum {
 
 enum {
 	OPCODE_R(MOV),
-	OPCODE_R(MOVC),
+	OPCODE_R(MOVI),
 
 	HLT,
 	NOP,
@@ -22,7 +22,7 @@ enum {
 	OPCODE_R(LOD),
 
 	PUSH,
-	PUSHC,
+	PUSHI,
 
 	POP,
 
@@ -41,7 +41,7 @@ enum {
 	OPCODE_R(SUB),
 
 	CALL,
-	CALLC,
+	CALLI,
 
 	QDB,
 };

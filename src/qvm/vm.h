@@ -2,9 +2,11 @@
 #include <qvm.h>
 #include <registers.h>
 #include <stdio.h>
+#define DISASM_STR_SIZE 255
 
 typedef struct {
 	byte *memory;
+	char *last_disassembly;
 	registers regs;
 	struct {
 		byte CF;
