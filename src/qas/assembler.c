@@ -106,7 +106,10 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 		}
 
 		ftoQendian(this->out, label->addr);
+		return true;
 	}
+
+	return false;
 }
 
 void assembler_assemble(Assembler *this) {
@@ -138,6 +141,7 @@ void assembler_assemble(Assembler *this) {
 					printf("[qas] [%d]: excepted a register in mov\n", this->lexer->line);
 					free(left);
 					free(right);
+					free(token);
 					break;
 				}
 
@@ -145,6 +149,7 @@ void assembler_assemble(Assembler *this) {
 					printf("[qas] [%d]: excepted a register || number || label in mov\n", this->lexer->line);
 					free(left);
 					free(right);
+					free(token);
 					break;
 				} else if (right->type == T_NUM || right->type == T_IDENTIFIER) {
 					if (!this->preprocessor) {
@@ -170,6 +175,7 @@ void assembler_assemble(Assembler *this) {
 
 				if (left->type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in mov\n", this->lexer->line);
+					free(token);
 					free(left);
 					free(right);
 					break;
@@ -177,6 +183,7 @@ void assembler_assemble(Assembler *this) {
 
 				if (right->type != T_NUM && right->type != T_IDENTIFIER) {
 					printf("[qas] [%d]: excepted a number || label in mov\n", this->lexer->line);
+					free(token);
 					free(left);
 					free(right);
 					break;
@@ -197,9 +204,6 @@ void assembler_assemble(Assembler *this) {
 			} else if (strcmp(token->value_s, "nop") == 0) {
 				this->addr += 0x1;
 				assembler_outb(this, NOP);
-			} else if (strcmp(token->value_s, "qdb") == 0) {
-				this->addr += 0x1;
-				assembler_outb(this, QDB);
 			} else if (strcmp(token->value_s, "lod") == 0) {
 				Token *dest = lexer_next(this->lexer);
 				Token *size = lexer_next(this->lexer);
@@ -208,6 +212,7 @@ void assembler_assemble(Assembler *this) {
 
 				if (src->type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in lod\n", this->lexer->line);
+					free(token);
 					free(dest);
 					free(size);
 					free(src);
@@ -216,6 +221,7 @@ void assembler_assemble(Assembler *this) {
 
 				if (dest->type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in lod\n", this->lexer->line);
+					free(token);
 					free(dest);
 					free(size);
 					free(src);
@@ -224,6 +230,7 @@ void assembler_assemble(Assembler *this) {
 
 				if (size->type != T_SIZE) {
 					printf("[qas] [%d]: excepted a size specifier in lod\n", this->lexer->line);
+					free(token);
 					free(dest);
 					free(size);
 					free(src);
@@ -240,6 +247,7 @@ void assembler_assemble(Assembler *this) {
 
 				if (left->type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in cmp\n", this->lexer->line);
+					free(token);
 					free(left);
 					free(right);
 					break;
@@ -247,6 +255,7 @@ void assembler_assemble(Assembler *this) {
 
 				if (right->type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in cmp\n", this->lexer->line);
+					free(token);
 					free(left);
 					free(right);
 					break;
@@ -259,6 +268,7 @@ void assembler_assemble(Assembler *this) {
 
 				if (op->type != T_REGISTER && op->type != T_NUM) {
 					printf("[qas] [%d]: excepted a register || number in push\n", this->lexer->line);
+					free(token);
 					free(op);
 					break;
 				} else if (op->type == T_NUM) {
@@ -275,6 +285,7 @@ void assembler_assemble(Assembler *this) {
 
 				if (op->type != T_NUM) {
 					printf("[qas] [%d]: excepted a number in pushi\n", this->lexer->line);
+					free(token);
 					free(op);
 					break;
 				}
@@ -286,6 +297,7 @@ void assembler_assemble(Assembler *this) {
 
 				if (op->type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register || number in pop\n", this->lexer->line);
+					free(token);
 					free(op);
 					break;
 				}
@@ -296,6 +308,7 @@ void assembler_assemble(Assembler *this) {
 				Token *op = lexer_next(this->lexer);
 				if (op->type != T_REGISTER && op->type != T_NUM && op->type != T_IDENTIFIER) {
 					printf("[qas] [%d]: excepted a register || number || label in branch-like instruction\n", this->lexer->line);
+					free(token);
 					free(op);
 					break;
 				}
@@ -334,6 +347,182 @@ void assembler_assemble(Assembler *this) {
 						this->addr += 0x2;
 					}
 				}
+			} else if (strcmp(token->value_s, "str") == 0) {
+				Token *size = lexer_next(this->lexer);
+				Token *dest = lexer_next(this->lexer);
+				Token *src = lexer_next(this->lexer);
+				this->addr += 3;
+
+				if (src->type != T_REGISTER) {
+					printf("[qas] [%d]: excepted a register in str\n", this->lexer->line);
+					free(token);
+					free(dest);
+					free(size);
+					free(src);
+					break;
+				}
+
+				if (dest->type != T_REGISTER) {
+					printf("[qas] [%d]: excepted a register in str\n", this->lexer->line);
+					free(token);
+					free(dest);
+					free(size);
+					free(src);
+					break;
+				}
+
+				if (size->type != T_SIZE) {
+					printf("[qas] [%d]: excepted a size specifier in str\n", this->lexer->line);
+					free(token);
+					free(dest);
+					free(size);
+					free(src);
+					break;
+				}
+
+				assembler_outb(this, get_register_index_from_name(dest->value_s) + STR_R0);
+				assembler_outb(this, size->value_u);
+				assembler_outb(this, get_register_index_from_name(src->value_s));
+			} else if (strcmp(token->value_s, "add") == 0) {
+				this->addr += 0x2;
+				Token *left = lexer_next(this->lexer);
+				Token *right = lexer_next(this->lexer);
+
+				if (left->type != T_REGISTER) {
+					printf("[qas] [%d]: excepted a register in add\n", this->lexer->line);
+					free(token);
+					free(left);
+					free(right);
+					break;
+				}
+
+				if (right->type != T_REGISTER) {
+					printf("[qas] [%d]: excepted a register in add\n", this->lexer->line);
+					free(token);
+					free(left);
+					free(right);
+					break;
+				}
+				assembler_outb(this, get_register_index_from_name(left->value_s) + ADD_R0);
+				assembler_outb(this, get_register_index_from_name(right->value_s));
+
+				free(left);
+				free(right);
+			} else if (strcmp(token->value_s, "sub") == 0) {
+				this->addr += 0x2;
+				Token *left = lexer_next(this->lexer);
+				Token *right = lexer_next(this->lexer);
+
+				if (left->type != T_REGISTER) {
+					printf("[qas] [%d]: excepted a register in sub\n", this->lexer->line);
+					free(token);
+					free(left);
+					free(right);
+					break;
+				}
+
+				if (right->type != T_REGISTER) {
+					printf("[qas] [%d]: excepted a register in sub\n", this->lexer->line);
+					free(token);
+					free(left);
+					free(right);
+					break;
+				}
+				assembler_outb(this, get_register_index_from_name(left->value_s) + SUB_R0);
+				assembler_outb(this, get_register_index_from_name(right->value_s));
+
+				free(left);
+				free(right);
+			} else if (strcmp(token->value_s, "call") == 0) {
+				Token *op = lexer_next(this->lexer);
+
+				if (op->type != T_REGISTER && op->type != T_IDENTIFIER && op->type != T_NUM) {
+					printf("[qas] [%d]: excepted a register || label || number in call\n", this->lexer->line);
+					free(token);
+					free(op);
+					break;
+				}
+
+				if (op->type == T_REGISTER) {
+					assembler_outb(this, CALL);
+					assembler_outb(this, get_register_index_from_name(op->value_s));
+					this->addr += 0x2;
+				} else {
+					assembler_outb(this, CALLI);
+					assembler_do_const_operand(this, op);
+					this->addr += 0x5;
+				}
+
+				free(op);
+			} else if (strcmp(token->value_s, "calli") == 0) {
+				Token *op = lexer_next(this->lexer);
+
+				if (op->type != T_IDENTIFIER && op->type != T_NUM) {
+					printf("[qas] [%d]: excepted a label || number in calli\n", this->lexer->line);
+					free(token);
+					free(op);
+					break;
+				}
+
+				assembler_outb(this, CALLI);
+				assembler_do_const_operand(this, op);
+				this->addr += 0x5;
+
+				free(op);
+			} else if (strcmp(token->value_s, "qdb") == 0) {
+				this->addr += 0x1;
+				assembler_outb(this, QDB);
+			} else if (strcmp(token->value_s, "mul") == 0) {
+				this->addr += 0x2;
+				Token *left = lexer_next(this->lexer);
+				Token *right = lexer_next(this->lexer);
+
+				if (left->type != T_REGISTER) {
+					printf("[qas] [%d]: excepted a register in mul\n", this->lexer->line);
+					free(token);
+					free(left);
+					free(right);
+					break;
+				}
+
+				if (right->type != T_REGISTER) {
+					printf("[qas] [%d]: excepted a register in mul\n", this->lexer->line);
+					free(token);
+					free(left);
+					free(right);
+					break;
+				}
+				assembler_outb(this, get_register_index_from_name(left->value_s) + MUL_R0);
+				assembler_outb(this, get_register_index_from_name(right->value_s));
+
+				free(left);
+				free(right);
+			} else if (strcmp(token->value_s, "div") == 0) {
+				this->addr += 0x2;
+				Token *left = lexer_next(this->lexer);
+				Token *right = lexer_next(this->lexer);
+
+				if (left->type != T_REGISTER) {
+					printf("[qas] [%d]: excepted a register in div\n", this->lexer->line);
+					free(token);
+					free(left);
+					free(right);
+					break;
+				}
+
+				if (right->type != T_REGISTER) {
+					printf("[qas] [%d]: excepted a register in div\n", this->lexer->line);
+					free(token);
+					free(left);
+					free(right);
+					break;
+				}
+				assembler_outb(this, get_register_index_from_name(left->value_s) + DIV_R0);
+				assembler_outb(this, get_register_index_from_name(right->value_s));
+
+				free(left);
+				free(right);
+			} else {
 			}
 		}
 		free(token);

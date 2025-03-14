@@ -272,7 +272,7 @@ void vm_do_instruction(VM *vm) {
 	} else if (first_byte >= DIV_R0 && first_byte <= DIV_IP) {
 		vm_get_forward(vm, &bytes, 2);
 
-		vm_mul(vm, vm_get_register_from_index(vm, bytes[0] - DIV_R0), vm_get_register_from_index(vm, bytes[1]));
+		vm_div(vm, vm_get_register_from_index(vm, bytes[0] - DIV_R0), vm_get_register_from_index(vm, bytes[1]));
 		free(bytes);
 	} else {
 		printf("[qvm] illegal instruction\n");
