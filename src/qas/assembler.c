@@ -139,19 +139,16 @@ void assembler_assemble(Assembler *this) {
 
 				if (left.type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in mov\n", this->lexer->line);
-
 					break;
 				}
 
 				if (right.type != T_REGISTER && right.type != T_NUM && right.type != T_IDENTIFIER) {
 					printf("[qas] [%d]: excepted a register || number || label in mov\n", this->lexer->line);
-
 					break;
 				} else if (right.type == T_NUM || right.type == T_IDENTIFIER) {
 					if (!this->preprocessor) {
 						assembler_outb(this, get_register_index_from_name(left.value_s) + MOVI_R0);
 						if (!assembler_do_const_operand(this, right)) {
-
 							break;
 						}
 					}
@@ -168,19 +165,16 @@ void assembler_assemble(Assembler *this) {
 
 				if (left.type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in mov\n", this->lexer->line);
-
 					break;
 				}
 
 				if (right.type != T_NUM && right.type != T_IDENTIFIER) {
 					printf("[qas] [%d]: excepted a number || label in mov\n", this->lexer->line);
-
 					break;
 				}
 
 				assembler_outb(this, get_register_index_from_name(left.value_s) + MOVI_R0);
 				if (!assembler_do_const_operand(this, right)) {
-
 					break;
 				}
 
@@ -198,19 +192,16 @@ void assembler_assemble(Assembler *this) {
 
 				if (src.type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in lod\n", this->lexer->line);
-
 					break;
 				}
 
 				if (dest.type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in lod\n", this->lexer->line);
-
 					break;
 				}
 
 				if (size.type != T_SIZE) {
 					printf("[qas] [%d]: excepted a size specifier in lod\n", this->lexer->line);
-
 					break;
 				}
 
@@ -224,13 +215,11 @@ void assembler_assemble(Assembler *this) {
 
 				if (left.type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in cmp\n", this->lexer->line);
-
 					break;
 				}
 
 				if (right.type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in cmp\n", this->lexer->line);
-
 					break;
 				}
 
@@ -241,7 +230,6 @@ void assembler_assemble(Assembler *this) {
 
 				if (op.type != T_REGISTER && op.type != T_NUM) {
 					printf("[qas] [%d]: excepted a register || number in push\n", this->lexer->line);
-
 					break;
 				} else if (op.type == T_NUM) {
 					this->addr += 0x5;
@@ -257,7 +245,6 @@ void assembler_assemble(Assembler *this) {
 
 				if (op.type != T_NUM) {
 					printf("[qas] [%d]: excepted a number in pushi\n", this->lexer->line);
-
 					break;
 				}
 				this->addr += 0x5;
@@ -268,7 +255,6 @@ void assembler_assemble(Assembler *this) {
 
 				if (op.type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register || number in pop\n", this->lexer->line);
-
 					break;
 				}
 				this->addr += 0x2;
@@ -278,7 +264,6 @@ void assembler_assemble(Assembler *this) {
 				Token op = lexer_next(this->lexer);
 				if (op.type != T_REGISTER && op.type != T_NUM && op.type != T_IDENTIFIER) {
 					printf("[qas] [%d]: excepted a register || number || label in branch-like instruction\n", this->lexer->line);
-
 					break;
 				}
 
@@ -431,18 +416,15 @@ void assembler_assemble(Assembler *this) {
 
 				if (left.type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in div\n", this->lexer->line);
-
 					break;
 				}
 
 				if (right.type != T_REGISTER) {
 					printf("[qas] [%d]: excepted a register in div\n", this->lexer->line);
-
 					break;
 				}
 				assembler_outb(this, get_register_index_from_name(left.value_s) + DIV_R0);
 				assembler_outb(this, get_register_index_from_name(right.value_s));
-
 			} else {
 			}
 		}
