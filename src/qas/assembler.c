@@ -91,17 +91,17 @@ byte get_register_index_from_name(char *name) {
 	return 0;
 }
 
-bool assembler_do_const_operand(Assembler *this, Token token) {
+bool assembler_do_const_operand(Assembler *this, Token *token) {
 	if (this->preprocessor)
 		return true;
 
-	if (token.type == T_NUM) {
-		ftoQendian(this->out, token.value_u);
+	if (token->type == T_NUM) {
+		ftoQendian(this->out, token->value_u);
 		return true;
-	} else if (token.type == T_IDENTIFIER) {
-		Label *label = assembler_get_label(this, token.value_s);
+	} else if (token->type == T_IDENTIFIER) {
+		Label *label = assembler_get_label(this, token->value_s);
 		if (!label) {
-			printf("[qas] [%d]: undefined label\n", token.line);
+			printf("[qas] [%d]: undefined label\n", token->line);
 			return false;
 		}
 
@@ -148,7 +148,7 @@ void assembler_assemble(Assembler *this) {
 				} else if (right.type == T_NUM || right.type == T_IDENTIFIER) {
 					if (!this->preprocessor) {
 						assembler_outb(this, get_register_index_from_name(left.value_s) + MOVI_R0);
-						if (!assembler_do_const_operand(this, right)) {
+						if (!assembler_do_const_operand(this, &right)) {
 							break;
 						}
 					}
@@ -174,7 +174,7 @@ void assembler_assemble(Assembler *this) {
 				}
 
 				assembler_outb(this, get_register_index_from_name(left.value_s) + MOVI_R0);
-				if (!assembler_do_const_operand(this, right)) {
+				if (!assembler_do_const_operand(this, &right)) {
 					break;
 				}
 
@@ -234,7 +234,7 @@ void assembler_assemble(Assembler *this) {
 				} else if (op.type == T_NUM) {
 					this->addr += 0x5;
 					assembler_outb(this, PUSHI);
-					assembler_do_const_operand(this, op);
+					assembler_do_const_operand(this, &op);
 				} else {
 					this->addr += 0x2;
 					assembler_outb(this, PUSH);
@@ -249,7 +249,7 @@ void assembler_assemble(Assembler *this) {
 				}
 				this->addr += 0x5;
 				assembler_outb(this, PUSHI);
-				assembler_do_const_operand(this, op);
+				assembler_do_const_operand(this, &op);
 			} else if (strcmp(token.value_s, "pop") == 0) {
 				Token op = lexer_next(this->lexer);
 
@@ -274,7 +274,7 @@ void assembler_assemble(Assembler *this) {
 						this->addr += 0x2;
 					} else {
 						assembler_outb(this, MOVI_IP);
-						assembler_do_const_operand(this, op);
+						assembler_do_const_operand(this, &op);
 						this->addr += 0x5;
 					}
 				} else {
@@ -294,7 +294,7 @@ void assembler_assemble(Assembler *this) {
 
 					if (op.type != T_REGISTER) {
 						assembler_outb(this, JMP_CONST);
-						assembler_do_const_operand(this, op);
+						assembler_do_const_operand(this, &op);
 						this->addr += 0x6;
 					} else {
 						assembler_outb(this, get_register_index_from_name(op.value_s));
@@ -373,7 +373,7 @@ void assembler_assemble(Assembler *this) {
 					this->addr += 0x2;
 				} else {
 					assembler_outb(this, CALLI);
-					assembler_do_const_operand(this, op);
+					assembler_do_const_operand(this, &op);
 					this->addr += 0x5;
 				}
 
@@ -386,7 +386,7 @@ void assembler_assemble(Assembler *this) {
 				}
 
 				assembler_outb(this, CALLI);
-				assembler_do_const_operand(this, op);
+				assembler_do_const_operand(this, &op);
 				this->addr += 0x5;
 
 			} else if (strcmp(token.value_s, "qdb") == 0) {
@@ -426,6 +426,8 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, get_register_index_from_name(left.value_s) + DIV_R0);
 				assembler_outb(this, get_register_index_from_name(right.value_s));
 			} else {
+				printf("[qas] [%d]: invalid identifier: %s\n", this->lexer->line, token.value_s);
+				break;
 			}
 		}
 	}
