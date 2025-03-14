@@ -16,6 +16,7 @@ void vm_call(VM *vm, dword *dest);
 void vm_calli(VM *vm, dword dest);
 void vm_mul(VM *vm, dword *dest, dword *source);
 void vm_div(VM *vm, dword *dest, dword *source);
+void vm_swi(VM *vm, byte index);
 
 void vm_be(VM *vm, dword dest);
 void vm_bl(VM *vm, dword dest);

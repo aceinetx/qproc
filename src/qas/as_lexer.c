@@ -36,6 +36,10 @@ bool is_letter(char c) {
 	return (c >= 'a' && c <= 'z' || (c >= 'A' && c <= 'Z') || c == '.');
 }
 
+bool is_symbol(char c) {
+	return (c == '.' || c == ',' || c == '!' || c == ' ');
+}
+
 CALLEOWNS Token lexer_number(Lexer *lexer) {
 	Token tok = token_new();
 	tok.type = T_NUM;
@@ -178,7 +182,7 @@ CALLEOWNS Token lexer_string(Lexer *lexer) {
 	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
 
-		if (!is_letter(c) && !is_digit(c)) {
+		if (!is_letter(c) && !is_digit(c) && !is_symbol(c)) {
 			if (c == '"') {
 				if (definition) {
 					lexer->pos++;

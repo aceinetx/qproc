@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+extern const dword LABELS_MAX;
+
 typedef struct {
 	char name[LEXER_STR_MAX];
 	dword addr;

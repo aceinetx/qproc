@@ -274,6 +274,10 @@ void vm_do_instruction(VM *vm) {
 
 		vm_div(vm, vm_get_register_from_index(vm, bytes[0] - DIV_R0), vm_get_register_from_index(vm, bytes[1]));
 		free(bytes);
+	} else if (first_byte == SWI) {
+		vm_get_forward(vm, &bytes, 2);
+		vm_swi(vm, bytes[1]);
+		free(bytes);
 	} else {
 		printf("[qvm] illegal instruction\n");
 		vm->regs.ip = 0xffffffff;

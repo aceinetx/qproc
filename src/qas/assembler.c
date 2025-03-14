@@ -3,12 +3,15 @@
 #include <opcodes.h>
 #include <stdlib.h>
 
+const dword LABELS_MAX = 128;
+
 Assembler *assembler_new(FILE *out, Lexer *lexer) {
 	Assembler *assembler = malloc(sizeof(Assembler));
 
 	assembler->out = out;
 	assembler->lexer = lexer;
-	assembler->labels = NULL;
+	assembler->labels = malloc(sizeof(Label) * LABELS_MAX);
+	memset(assembler->labels, 0, sizeof(Label) * LABELS_MAX);
 
 	return assembler;
 }
@@ -27,24 +30,11 @@ Label *assembler_get_label(Assembler *this, char *name) {
 }
 
 void assembler_add_label(Assembler *this, Label label) {
-	if (this->labels == NULL) {
-		this->labels = malloc(sizeof(Label) * 2);
-		memset(this->labels, 0, sizeof(Label) * 2);
-		this->labels[0] = label;
-	} else {
-		dword len = 0;
-		for (int i = 0;; i++) {
-			if (this->labels[i].name[0] == '\0') {
-				len = i;
-				break;
-			}
+	for (int i = 0;; i++) {
+		if (this->labels[i].name[0] == '\0') {
+			this->labels[i] = label;
+			break;
 		}
-		Label *new_labels = malloc(sizeof(Label) * (len + 1));
-		memset(this->labels, 0, sizeof(Label) * (len + 1));
-		memcpy(new_labels, this->labels, sizeof(Label) * (len));
-		new_labels[len] = label;
-		free(this->labels);
-		this->labels = new_labels;
 	}
 }
 
@@ -132,6 +122,9 @@ void assembler_assemble(Assembler *this) {
 			label.addr = this->addr;
 			assembler_add_label(this, label);
 		} else if (token.type == T_IDENTIFIER) {
+			/*
+			 * INSTRUCTIONS
+			 */
 			if (strcmp(token.value_s, "mov") == 0) {
 				this->addr += 0x2;
 				Token left = lexer_next(this->lexer);
@@ -155,7 +148,7 @@ void assembler_assemble(Assembler *this) {
 					this->addr += 0x3;
 				} else {
 					assembler_outb(this, get_register_index_from_name(left.value_s) + MOV_R0);
-					assembler_outb(this, get_register_index_from_name(right.value_s) + MOVI_R0);
+					assembler_outb(this, get_register_index_from_name(right.value_s));
 				}
 
 			} else if (strcmp(token.value_s, "movi") == 0) {
@@ -254,7 +247,7 @@ void assembler_assemble(Assembler *this) {
 				Token op = lexer_next(this->lexer);
 
 				if (op.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register || number in pop\n", this->lexer->line);
+					printf("[qas] [%d]: excepted a register in pop\n", this->lexer->line);
 					break;
 				}
 				this->addr += 0x2;
@@ -425,8 +418,49 @@ void assembler_assemble(Assembler *this) {
 				}
 				assembler_outb(this, get_register_index_from_name(left.value_s) + DIV_R0);
 				assembler_outb(this, get_register_index_from_name(right.value_s));
+			} else if (strcmp(token.value_s, "swi") == 0) {
+				Token op = lexer_next(this->lexer);
+
+				if (op.type != T_NUM) {
+					printf("[qas] [%d]: excepted a number in swi\n", this->lexer->line);
+					break;
+				}
+				this->addr += 0x2;
+				assembler_outb(this, SWI);
+				assembler_outb(this, op.value_u);
 			} else {
 				printf("[qas] [%d]: invalid identifier: %s\n", this->lexer->line, token.value_s);
+				break;
+			}
+		} else if (token.type == T_DIRECTIVE) {
+			/*
+			 * DIRECTIVES
+			 */
+			if (strcmp(token.value_s, "#byte") == 0) {
+				Token op = lexer_next(this->lexer);
+				if (op.type == T_STRING) {
+					char *c = op.value_s;
+					while (*c != 0) {
+						assembler_outb(this, *c);
+						c++;
+					}
+					assembler_outb(this, 0);
+				} else if (op.type == T_NUM) {
+					assembler_outb(this, op.value_u);
+				} else {
+					printf("[qas] [%d]: invalid argument type for #byte\n", this->lexer->line);
+					break;
+				}
+			} else if (strcmp(token.value_s, "#org") == 0) {
+				Token op = lexer_next(this->lexer);
+				if (op.type == T_NUM) {
+					this->addr = op.value_u;
+				} else {
+					printf("[qas] [%d]: invalid argument type for #org\n", this->lexer->line);
+					break;
+				}
+			} else {
+				printf("[qas] [%d]: invalid directive: %s\n", this->lexer->line, token.value_s);
 				break;
 			}
 		}

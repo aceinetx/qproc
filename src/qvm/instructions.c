@@ -82,6 +82,14 @@ void vm_div(VM *vm, dword *dest, dword *source) {
 	*dest /= *source;
 }
 
+void vm_swi(VM *vm, byte index) {
+	switch (index) {
+	case INT_PUTC:
+		putc(vm->regs.r0, stdout);
+		break;
+	}
+}
+
 void vm_call(VM *vm, dword *dest) {
 	vm_pushi(vm, vm->regs.ip);
 	vm->regs.ip = *dest;

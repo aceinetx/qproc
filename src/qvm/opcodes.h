@@ -3,6 +3,7 @@
 // clang-format off
 #define OPCODE_R(name) name##_R0, name##_R1, name##_R2, name##_R3, name##_R4, name##_R5, name##_R6, name##_R7, name##_R8, name##_R9, name##_R10, name##_R11, name##_R12, name##_SP, name##_BP, name##_IP
 #define JMP_CONST 0xff
+#define INT_PUTC 0x01
 // clang-format on
 
 // size specifiers
@@ -47,6 +48,8 @@ enum {
 
 	OPCODE_R(MUL),
 	OPCODE_R(DIV),
+
+	SWI,
 };
 
 #undef OPCODE_R
