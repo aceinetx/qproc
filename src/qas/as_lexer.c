@@ -4,13 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-CALLEOWNS Token *token_new() {
-	Token *tok = malloc(sizeof(Token));
-	tok->type = T_NUM;
-	tok->value_u = 0;
-	tok->value_i = 0;
-	tok->line = 0;
-	memset(tok->value_s, 0, LEXER_STR_MAX);
+CALLEOWNS Token token_new() {
+	Token tok;
+	tok.type = T_NULL;
+	tok.value_u = 0;
+	tok.value_i = 0;
+	tok.line = 0;
+	memset(tok.value_s, 0, LEXER_STR_MAX);
 	return tok;
 }
 
@@ -36,10 +36,10 @@ bool is_letter(char c) {
 	return (c >= 'a' && c <= 'z' || (c >= 'A' && c <= 'Z') || c == '.');
 }
 
-CALLEOWNS Token *lexer_number(Lexer *lexer) {
-	Token *tok = token_new();
-	tok->type = T_NUM;
-	tok->line = lexer->line;
+CALLEOWNS Token lexer_number(Lexer *lexer) {
+	Token tok = token_new();
+	tok.type = T_NUM;
+	tok.line = lexer->line;
 
 	bool is_hex = false;
 
@@ -48,7 +48,7 @@ CALLEOWNS Token *lexer_number(Lexer *lexer) {
 		if (!is_digit(c) && !is_hex) {
 			if (c == 'x') {
 				is_hex = true;
-				tok->value_u = 0;
+				tok.value_u = 0;
 				lexer->pos++;
 				continue;
 			} else {
@@ -58,29 +58,29 @@ CALLEOWNS Token *lexer_number(Lexer *lexer) {
 
 		if (is_hex) {
 			bool invalid = false;
-			tok->value_u *= 16;
+			tok.value_u *= 16;
 
 			if (is_digit(c)) {
-				tok->value_u += c - '0';
+				tok.value_u += c - '0';
 			} else {
 				switch (c) {
 				case 'a':
-					tok->value_u += 0xa;
+					tok.value_u += 0xa;
 					break;
 				case 'b':
-					tok->value_u += 0xb;
+					tok.value_u += 0xb;
 					break;
 				case 'c':
-					tok->value_u += 0xc;
+					tok.value_u += 0xc;
 					break;
 				case 'd':
-					tok->value_u += 0xd;
+					tok.value_u += 0xd;
 					break;
 				case 'e':
-					tok->value_u += 0xe;
+					tok.value_u += 0xe;
 					break;
 				case 'f':
-					tok->value_u += 0xf;
+					tok.value_u += 0xf;
 					break;
 				default:
 					invalid = true;
@@ -88,13 +88,13 @@ CALLEOWNS Token *lexer_number(Lexer *lexer) {
 				}
 			}
 			if (invalid) {
-				tok->value_u /= 16;
+				tok.value_u /= 16;
 				break;
 			}
 		} else {
-			tok->value_u *= 10;
+			tok.value_u *= 10;
 
-			tok->value_u += c - '0';
+			tok.value_u += c - '0';
 		}
 		lexer->pos++;
 	}
@@ -102,56 +102,56 @@ CALLEOWNS Token *lexer_number(Lexer *lexer) {
 	return tok;
 }
 
-CALLEOWNS Token *lexer_identifier(Lexer *lexer) {
-	Token *tok = token_new();
-	tok->type = T_IDENTIFIER;
-	tok->line = lexer->line;
+CALLEOWNS Token lexer_identifier(Lexer *lexer) {
+	Token tok = token_new();
+	tok.type = T_IDENTIFIER;
+	tok.line = lexer->line;
 
-	size_t len = strlen(tok->value_s);
+	size_t len = strlen(tok.value_s);
 	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
 
 		if (!is_letter(c) && !is_digit(c)) {
 			if (c == ':') {
-				tok->type = T_LABEL;
+				tok.type = T_LABEL;
 			}
 			break;
 		}
 
-		tok->value_s[len] = c;
+		tok.value_s[len] = c;
 
-		len = strlen(tok->value_s);
+		len = strlen(tok.value_s);
 		lexer->pos++;
 	}
 
-	if (tok->value_s[0] == 'r' && len >= 2 && len <= 3) {
-		tok->type = T_REGISTER;
-	} else if (strcmp(tok->value_s, "sp") == 0) {
-		tok->type = T_REGISTER;
-	} else if (strcmp(tok->value_s, "bp") == 0) {
-		tok->type = T_REGISTER;
-	} else if (strcmp(tok->value_s, "ip") == 0) {
-		tok->type = T_REGISTER;
-	} else if (strcmp(tok->value_s, "dword") == 0) {
-		tok->type = T_SIZE;
-		tok->value_u = SS_DWORD;
-	} else if (strcmp(tok->value_s, "word") == 0) {
-		tok->type = T_SIZE;
-		tok->value_u = SS_WORD;
-	} else if (strcmp(tok->value_s, "byte") == 0) {
-		tok->type = T_SIZE;
-		tok->value_u = SS_BYTE;
+	if (tok.value_s[0] == 'r' && len >= 2 && len <= 3) {
+		tok.type = T_REGISTER;
+	} else if (strcmp(tok.value_s, "sp") == 0) {
+		tok.type = T_REGISTER;
+	} else if (strcmp(tok.value_s, "bp") == 0) {
+		tok.type = T_REGISTER;
+	} else if (strcmp(tok.value_s, "ip") == 0) {
+		tok.type = T_REGISTER;
+	} else if (strcmp(tok.value_s, "dword") == 0) {
+		tok.type = T_SIZE;
+		tok.value_u = SS_DWORD;
+	} else if (strcmp(tok.value_s, "word") == 0) {
+		tok.type = T_SIZE;
+		tok.value_u = SS_WORD;
+	} else if (strcmp(tok.value_s, "byte") == 0) {
+		tok.type = T_SIZE;
+		tok.value_u = SS_BYTE;
 	}
 
 	return tok;
 }
 
-CALLEOWNS Token *lexer_directive(Lexer *lexer) {
-	Token *tok = token_new();
-	tok->type = T_DIRECTIVE;
-	tok->line = lexer->line;
+CALLEOWNS Token lexer_directive(Lexer *lexer) {
+	Token tok = token_new();
+	tok.type = T_DIRECTIVE;
+	tok.line = lexer->line;
 
-	size_t len = strlen(tok->value_s);
+	size_t len = strlen(tok.value_s);
 	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
 
@@ -159,21 +159,21 @@ CALLEOWNS Token *lexer_directive(Lexer *lexer) {
 			break;
 		}
 
-		tok->value_s[len] = c;
+		tok.value_s[len] = c;
 
-		len = strlen(tok->value_s);
+		len = strlen(tok.value_s);
 		lexer->pos++;
 	}
 
 	return tok;
 }
 
-CALLEOWNS Token *lexer_string(Lexer *lexer) {
-	Token *tok = token_new();
-	tok->type = T_STRING;
-	tok->line = lexer->line;
+CALLEOWNS Token lexer_string(Lexer *lexer) {
+	Token tok = token_new();
+	tok.type = T_STRING;
+	tok.line = lexer->line;
 
-	size_t len = strlen(tok->value_s);
+	size_t len = strlen(tok.value_s);
 	bool definition = false;
 	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
@@ -193,19 +193,19 @@ CALLEOWNS Token *lexer_string(Lexer *lexer) {
 		}
 
 		if (definition)
-			tok->value_s[len] = c;
+			tok.value_s[len] = c;
 
-		len = strlen(tok->value_s);
+		len = strlen(tok.value_s);
 		lexer->pos++;
 	}
 
 	return tok;
 }
 
-CALLEOWNS Token *lexer_next(Lexer *lexer) {
+CALLEOWNS Token lexer_next(Lexer *lexer) {
 	while (lexer->pos < lexer->code_len) {
 		char c = lexer->code[lexer->pos];
-		Token *token = NULL;
+		Token token = token_new();
 
 		if (c == '\n') {
 			lexer->line++;
@@ -219,13 +219,13 @@ CALLEOWNS Token *lexer_next(Lexer *lexer) {
 			token = lexer_string(lexer);
 		}
 
-		if (token != NULL)
+		if (token.type != T_NULL)
 			return token;
 
 		lexer->pos++;
 	}
-	Token *tok = token_new();
-	tok->type = T_EOF;
-	tok->line = lexer->line;
+	Token tok = token_new();
+	tok.type = T_EOF;
+	tok.line = lexer->line;
 	return tok;
 }

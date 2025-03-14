@@ -3,6 +3,7 @@
 #define LEXER_STR_MAX 32
 
 typedef enum {
+	T_NULL,
 	T_EOF,
 	T_NUM,
 	T_LABEL,
@@ -30,4 +31,4 @@ typedef struct {
 
 Lexer *lexer_new(char *code);
 void lexer_delete(Lexer *lexer);
-CALLEOWNS Token *lexer_next(Lexer *lexer);
+Token lexer_next(Lexer *lexer);
