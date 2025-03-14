@@ -207,24 +207,34 @@ CALLEOWNS Token lexer_string(Lexer *lexer) {
 }
 
 CALLEOWNS Token lexer_next(Lexer *lexer) {
+	bool in_comment = false;
 	while (lexer->pos < lexer->code_len) {
 		char c = lexer->code[lexer->pos];
 		Token token = token_new();
 
-		if (c == '\n') {
-			lexer->line++;
-		} else if (is_digit(c)) {
-			token = lexer_number(lexer);
-		} else if (is_letter(c)) {
-			token = lexer_identifier(lexer);
-		} else if (c == '#') {
-			token = lexer_directive(lexer);
-		} else if (c == '"') {
-			token = lexer_string(lexer);
+		if (c == ';') {
+			in_comment = true;
 		}
 
-		if (token.type != T_NULL)
-			return token;
+		if (c == '\n') {
+			in_comment = false;
+			lexer->line++;
+		}
+
+		if (!in_comment) {
+			if (is_digit(c)) {
+				token = lexer_number(lexer);
+			} else if (is_letter(c)) {
+				token = lexer_identifier(lexer);
+			} else if (c == '#') {
+				token = lexer_directive(lexer);
+			} else if (c == '"') {
+				token = lexer_string(lexer);
+			}
+
+			if (token.type != T_NULL)
+				return token;
+		}
 
 		lexer->pos++;
 	}
