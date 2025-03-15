@@ -24,7 +24,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ..
+          cmake -DCMAKE_C_FLAGS="-static" ..
           make -j$(nproc)
           mv qvm ../qvm-x86_64
           mv qas ../qas-x86_64
