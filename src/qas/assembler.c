@@ -9,6 +9,9 @@ Assembler *assembler_new(FILE *out, Lexer *lexer) {
 	Assembler *assembler = malloc(sizeof(Assembler));
 
 	assembler->out = out;
+	memset(assembler->logs, 0, sizeof(assembler->logs));
+	assembler->no_stdout = false;
+	assembler->no_fd_buf_p = assembler->no_fd_buf;
 	assembler->lexer = lexer;
 	assembler->labels = malloc(sizeof(Label) * LABELS_MAX);
 	memset(assembler->labels, 0, sizeof(Label) * LABELS_MAX);
@@ -41,7 +44,15 @@ void assembler_add_label(Assembler *this, Label label) {
 void assembler_outb(Assembler *this, byte b) {
 	if (this->preprocessor)
 		return;
-	fprintf(this->out, "%c", b);
+	this->bytes_assembled++;
+	if (this->out != NULL) {
+		fprintf(this->out, "%c", b);
+	} else {
+		if (this->no_fd_buf_p <= this->no_fd_buf + sizeof(this->no_fd_buf)) {
+			*this->no_fd_buf_p = b;
+			this->no_fd_buf_p++;
+		}
+	}
 }
 
 byte get_register_index_from_name(char *name) {
@@ -86,16 +97,22 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 		return true;
 
 	if (token->type == T_NUM) {
-		ftoQendian(this->out, token->value_u);
+		byte *bytes = toQendian(token->value_u);
+		for (int i = 0; i < 4; i++) {
+			assembler_outb(this, bytes[i]);
+		}
 		return true;
 	} else if (token->type == T_IDENTIFIER) {
 		Label *label = assembler_get_label(this, token->value_s);
 		if (!label) {
-			printf("[qas] [%d]: undefined label\n", token->line);
+			snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: undefined label\n", token->line);
 			return false;
 		}
 
-		ftoQendian(this->out, label->addr);
+		byte *bytes = toQendian(label->addr);
+		for (int i = 0; i < 4; i++) {
+			assembler_outb(this, bytes[i]);
+		}
 		return true;
 	}
 
@@ -131,12 +148,12 @@ void assembler_assemble(Assembler *this) {
 				Token right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in mov\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in mov\n", this->lexer->line);
 					break;
 				}
 
 				if (right.type != T_REGISTER && right.type != T_NUM && right.type != T_IDENTIFIER) {
-					printf("[qas] [%d]: excepted a register || number || label in mov\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register || number || label in mov\n", this->lexer->line);
 					break;
 				} else if (right.type == T_NUM || right.type == T_IDENTIFIER) {
 					if (!this->preprocessor) {
@@ -157,12 +174,12 @@ void assembler_assemble(Assembler *this) {
 				Token right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in mov\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in mov\n", this->lexer->line);
 					break;
 				}
 
 				if (right.type != T_NUM && right.type != T_IDENTIFIER) {
-					printf("[qas] [%d]: excepted a number || label in mov\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a number || label in mov\n", this->lexer->line);
 					break;
 				}
 
@@ -184,17 +201,17 @@ void assembler_assemble(Assembler *this) {
 				this->addr += 3;
 
 				if (src.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in lod\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in lod\n", this->lexer->line);
 					break;
 				}
 
 				if (dest.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in lod\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in lod\n", this->lexer->line);
 					break;
 				}
 
 				if (size.type != T_SIZE) {
-					printf("[qas] [%d]: excepted a size specifier in lod\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a size specifier in lod\n", this->lexer->line);
 					break;
 				}
 
@@ -207,12 +224,12 @@ void assembler_assemble(Assembler *this) {
 				this->addr += 0x2;
 
 				if (left.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in cmp\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in cmp\n", this->lexer->line);
 					break;
 				}
 
 				if (right.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in cmp\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in cmp\n", this->lexer->line);
 					break;
 				}
 
@@ -222,7 +239,7 @@ void assembler_assemble(Assembler *this) {
 				Token op = lexer_next(this->lexer);
 
 				if (op.type != T_REGISTER && op.type != T_NUM) {
-					printf("[qas] [%d]: excepted a register || number in push\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register || number in push\n", this->lexer->line);
 					break;
 				} else if (op.type == T_NUM) {
 					this->addr += 0x5;
@@ -237,7 +254,7 @@ void assembler_assemble(Assembler *this) {
 				Token op = lexer_next(this->lexer);
 
 				if (op.type != T_NUM) {
-					printf("[qas] [%d]: excepted a number in pushi\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a number in pushi\n", this->lexer->line);
 					break;
 				}
 				this->addr += 0x5;
@@ -247,7 +264,7 @@ void assembler_assemble(Assembler *this) {
 				Token op = lexer_next(this->lexer);
 
 				if (op.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in pop\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in pop\n", this->lexer->line);
 					break;
 				}
 				this->addr += 0x2;
@@ -256,7 +273,7 @@ void assembler_assemble(Assembler *this) {
 			} else if (token.value_s[0] == 'b') {
 				Token op = lexer_next(this->lexer);
 				if (op.type != T_REGISTER && op.type != T_NUM && op.type != T_IDENTIFIER) {
-					printf("[qas] [%d]: excepted a register || number || label in branch-like instruction\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register || number || label in branch-like instruction\n", this->lexer->line);
 					break;
 				}
 
@@ -301,17 +318,17 @@ void assembler_assemble(Assembler *this) {
 				this->addr += 3;
 
 				if (src.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in str\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in str\n", this->lexer->line);
 					break;
 				}
 
 				if (dest.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in str\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in str\n", this->lexer->line);
 					break;
 				}
 
 				if (size.type != T_SIZE) {
-					printf("[qas] [%d]: excepted a size specifier in str\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a size specifier in str\n", this->lexer->line);
 					break;
 				}
 
@@ -324,12 +341,12 @@ void assembler_assemble(Assembler *this) {
 				Token right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in add\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in add\n", this->lexer->line);
 					break;
 				}
 
 				if (right.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in add\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in add\n", this->lexer->line);
 					break;
 				}
 				assembler_outb(this, get_register_index_from_name(left.value_s) + ADD_R0);
@@ -341,12 +358,12 @@ void assembler_assemble(Assembler *this) {
 				Token right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in sub\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in sub\n", this->lexer->line);
 					break;
 				}
 
 				if (right.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in sub\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in sub\n", this->lexer->line);
 					break;
 				}
 				assembler_outb(this, get_register_index_from_name(left.value_s) + SUB_R0);
@@ -356,7 +373,7 @@ void assembler_assemble(Assembler *this) {
 				Token op = lexer_next(this->lexer);
 
 				if (op.type != T_REGISTER && op.type != T_IDENTIFIER && op.type != T_NUM) {
-					printf("[qas] [%d]: excepted a register || label || number in call\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register || label || number in call\n", this->lexer->line);
 					break;
 				}
 
@@ -374,7 +391,7 @@ void assembler_assemble(Assembler *this) {
 				Token op = lexer_next(this->lexer);
 
 				if (op.type != T_IDENTIFIER && op.type != T_NUM) {
-					printf("[qas] [%d]: excepted a label || number in calli\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a label || number in calli\n", this->lexer->line);
 					break;
 				}
 
@@ -391,12 +408,12 @@ void assembler_assemble(Assembler *this) {
 				Token right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in mul\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in mul\n", this->lexer->line);
 					break;
 				}
 
 				if (right.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in mul\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in mul\n", this->lexer->line);
 					break;
 				}
 				assembler_outb(this, get_register_index_from_name(left.value_s) + MUL_R0);
@@ -408,12 +425,12 @@ void assembler_assemble(Assembler *this) {
 				Token right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in div\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in div\n", this->lexer->line);
 					break;
 				}
 
 				if (right.type != T_REGISTER) {
-					printf("[qas] [%d]: excepted a register in div\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in div\n", this->lexer->line);
 					break;
 				}
 				assembler_outb(this, get_register_index_from_name(left.value_s) + DIV_R0);
@@ -422,14 +439,14 @@ void assembler_assemble(Assembler *this) {
 				Token op = lexer_next(this->lexer);
 
 				if (op.type != T_NUM) {
-					printf("[qas] [%d]: excepted a number in swi\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a number in swi\n", this->lexer->line);
 					break;
 				}
 				this->addr += 0x2;
 				assembler_outb(this, SWI);
 				assembler_outb(this, op.value_u);
 			} else {
-				printf("[qas] [%d]: invalid identifier: %s\n", this->lexer->line, token.value_s);
+				snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: invalid identifier: %s\n", this->lexer->line, token.value_s);
 				break;
 			}
 		} else if (token.type == T_DIRECTIVE) {
@@ -448,7 +465,7 @@ void assembler_assemble(Assembler *this) {
 				} else if (op.type == T_NUM) {
 					assembler_outb(this, op.value_u);
 				} else {
-					printf("[qas] [%d]: invalid argument type for #byte\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: invalid argument type for #byte\n", this->lexer->line);
 					break;
 				}
 			} else if (strcmp(token.value_s, "#org") == 0) {
@@ -456,14 +473,17 @@ void assembler_assemble(Assembler *this) {
 				if (op.type == T_NUM) {
 					this->addr = op.value_u;
 				} else {
-					printf("[qas] [%d]: invalid argument type for #org\n", this->lexer->line);
+					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: invalid argument type for #org\n", this->lexer->line);
 					break;
 				}
 			} else {
-				printf("[qas] [%d]: invalid directive: %s\n", this->lexer->line, token.value_s);
+				snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: invalid directive: %s\n", this->lexer->line, token.value_s);
 				break;
 			}
 		}
+	}
+	if (this->logs[0] != '\0' && !this->no_stdout) {
+		printf("%s", this->logs);
 	}
 }
 

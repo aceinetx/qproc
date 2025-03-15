@@ -1,26 +1,48 @@
 #include <as_lexer.h>
 #include <assembler.h>
+#include <emscripten.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-int main() {
-	char *src = "mov r0 r1";
+Assembler *assembler;
+Lexer *lexer;
 
-	char out[16384];
-	memset(out, 0, sizeof(out));
-	FILE *fd = fmemopen(out, sizeof(out), "+w");
+EMSCRIPTEN_KEEPALIVE
+void all_create() {
+	lexer = lexer_new(NULL);
+	assembler = assembler_new(NULL, lexer);
+	assembler->no_stdout = true;
+}
 
-	Lexer *lexer = lexer_new((char *)src);
-	Assembler *assembler = assembler_new(fd, lexer);
+EMSCRIPTEN_KEEPALIVE
+void all_destroy() {
+	lexer_delete(lexer);
+	assembler_delete(assembler);
+}
+
+EMSCRIPTEN_KEEPALIVE
+char *assemble(char *src) {
+	assembler->bytes_assembled = 0;
+	assembler->addr = 0;
+	lexer->pos = 0;
+	lexer->code = src;
+	lexer->code_len = strlen(src);
 
 	assembler_assemble(assembler);
 
-	assembler_delete(assembler);
-	lexer_delete(lexer);
+	return assembler->no_fd_buf;
+}
 
-	fclose(fd);
+EMSCRIPTEN_KEEPALIVE
+int get_assembled_bytes() {
+	return assembler->bytes_assembled;
+}
 
-	for (int i = 0; i < 64; i++) {
-		printf("%x ", out[i]);
-	}
-	printf("\n");
+EMSCRIPTEN_KEEPALIVE
+char *get_assembler_logs() {
+	return assembler->logs;
+}
+
+int main() {
+	printf("Initalized\n");
 }

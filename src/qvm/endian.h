@@ -3,5 +3,5 @@
 #include <stdio.h>
 
 int fromQendian(byte *bytes);
-byte *toQendian(int n);
+CALLEOWNS byte *toQendian(int n);
 void ftoQendian(FILE *fd, int n);

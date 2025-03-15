@@ -9,7 +9,7 @@ int fromQendian(byte *bytes) {
 	return value;
 }
 
-byte *toQendian(int n) {
+CALLEOWNS byte *toQendian(int n) {
 	byte *bytes = malloc(4);
 	for (size_t i = 0; i < 4; ++i) {
 		bytes[i] = (n >> (i * 8)) & 0xFF;
