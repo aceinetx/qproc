@@ -28,6 +28,17 @@ jobs:
           make -j$(nproc)
           mv qvm ../qvm-x86_64
           mv qas ../qas-x86_64
+          cd ../test
+          make -j$(nproc)
+          mv a.bin ../helloworld.bin
+          cd ..
+          tar -czvf programs.tar.gz helloworld.bin
+      
+      - name: Upload artifact (programs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: programs
+          path: programs.tar.gz
       
       - name: Upload artifact (qvm)
         uses: actions/upload-artifact@v4
@@ -50,6 +61,11 @@ jobs:
       - name: Authenticate GitHub CLI
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
+      - name: Download artifact (programs)
+        uses: actions/download-artifact@v4
+        with:
+          name: programs
+
       - name: Download artifact (qvm)
         uses: actions/download-artifact@v4
         with:
@@ -70,5 +86,6 @@ jobs:
           body: |
             Automated nightly release for commit ${{ github.sha }}. This release contains all of the newest features.
           files: |
+            ./programs.tar.gz
             ./qvm-x86_64
             ./qas-x86_64
