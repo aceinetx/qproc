@@ -1,0 +1,2 @@
+*.js linguist-language=plaintext
+*.s linguist-language=assembly
