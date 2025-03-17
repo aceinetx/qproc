@@ -20,7 +20,8 @@ Assembler *assembler_new(FILE *out, Lexer *lexer) {
 }
 
 Label *assembler_get_label(Assembler *this, char *name) {
-	for (int i = 0;; i++) {
+	int i;
+	for (i = 0;; i++) {
 		if (this->labels[i].name[0] == '\0') {
 			break;
 		}
@@ -33,7 +34,8 @@ Label *assembler_get_label(Assembler *this, char *name) {
 }
 
 void assembler_add_label(Assembler *this, Label label) {
-	for (int i = 0;; i++) {
+	int i;
+	for (i = 0;; i++) {
 		if (this->labels[i].name[0] == '\0') {
 			this->labels[i] = label;
 			break;
@@ -96,9 +98,11 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 	if (this->preprocessor)
 		return true;
 
+	int i;
+
 	if (token->type == T_NUM) {
 		byte *bytes = toQendian(token->value_u);
-		for (int i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++) {
 			assembler_outb(this, bytes[i]);
 		}
 		return true;
@@ -110,7 +114,7 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 		}
 
 		byte *bytes = toQendian(label->addr);
-		for (int i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++) {
 			assembler_outb(this, bytes[i]);
 		}
 		return true;

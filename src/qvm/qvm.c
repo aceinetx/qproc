@@ -12,7 +12,8 @@ int main(int argc, char **argv) {
 
 	char *filename = NULL;
 
-	for (unsigned int i = 0; argc; ++i) {
+	unsigned int i;
+	for (i = 0; argc; ++i) {
 		(void)i;
 
 		char *arg = args_shift(&argc, &argv);
