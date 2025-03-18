@@ -10,18 +10,18 @@ puts:
 	sub r2 r2
 	mov r3 1
 
-.putsloop:
-	lod r1 byte r0
+	.putsloop:
+		lod r1 byte r0
 
-	push r0
-	mov r0 r1
-	swi 1
-	pop r0
+		push r0
+		mov r0 r1
+		swi 1
+		pop r0
 
-	add r0 r3
+		add r0 r3
 
-	cmp r1 r2
-	bne .putsloop
+		cmp r1 r2
+		bne .putsloop
 
 	mov r0 10
 	swi 1

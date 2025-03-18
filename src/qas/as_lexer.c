@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-CALLEOWNS Token token_new() {
+Token token_new() {
 	Token tok;
 	tok.type = T_NULL;
 	tok.value_u = 0;
@@ -40,7 +40,7 @@ bool is_symbol(char c) {
 	return (c == '.' || c == ',' || c == '!' || c == ' ');
 }
 
-CALLEOWNS Token lexer_number(Lexer *lexer) {
+Token lexer_number(Lexer *lexer) {
 	Token tok = token_new();
 	tok.type = T_NUM;
 	tok.line = lexer->line;
@@ -106,7 +106,7 @@ CALLEOWNS Token lexer_number(Lexer *lexer) {
 	return tok;
 }
 
-CALLEOWNS Token lexer_identifier(Lexer *lexer) {
+Token lexer_identifier(Lexer *lexer) {
 	Token tok = token_new();
 	tok.type = T_IDENTIFIER;
 	tok.line = lexer->line;
@@ -150,7 +150,7 @@ CALLEOWNS Token lexer_identifier(Lexer *lexer) {
 	return tok;
 }
 
-CALLEOWNS Token lexer_directive(Lexer *lexer) {
+Token lexer_directive(Lexer *lexer) {
 	Token tok = token_new();
 	tok.type = T_DIRECTIVE;
 	tok.line = lexer->line;
@@ -172,7 +172,7 @@ CALLEOWNS Token lexer_directive(Lexer *lexer) {
 	return tok;
 }
 
-CALLEOWNS Token lexer_string(Lexer *lexer) {
+Token lexer_string(Lexer *lexer) {
 	Token tok = token_new();
 	tok.type = T_STRING;
 	tok.line = lexer->line;
@@ -206,7 +206,7 @@ CALLEOWNS Token lexer_string(Lexer *lexer) {
 	return tok;
 }
 
-CALLEOWNS Token lexer_next(Lexer *lexer) {
+Token lexer_next(Lexer *lexer) {
 	bool in_comment = false;
 	while (lexer->pos < lexer->code_len) {
 		char c = lexer->code[lexer->pos];
