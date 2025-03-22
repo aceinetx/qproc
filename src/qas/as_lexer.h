@@ -2,17 +2,7 @@
 #include <qvm.h>
 #define LEXER_STR_MAX 32
 
-typedef enum {
-	T_NULL,
-	T_EOF,
-	T_NUM,
-	T_LABEL,
-	T_REGISTER,
-	T_IDENTIFIER,
-	T_DIRECTIVE,
-	T_STRING,
-	T_SIZE,
-} TokenType;
+typedef enum { T_NULL, T_EOF, T_NUM, T_LABEL, T_REGISTER, T_IDENTIFIER, T_DIRECTIVE, T_STRING, T_SIZE } TokenType;
 
 typedef struct {
 	TokenType type;

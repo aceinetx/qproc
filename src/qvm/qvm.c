@@ -5,18 +5,23 @@
 #include <vm.h>
 
 int main(int argc, char **argv) {
+	char *filename;
+	unsigned int i;
+	dword size;
+	byte *buf;
+
 	if (sizeof(dword) != 4) {
 		printf("[qvm] FATAL: sizeof(dword) != 4, cannot continue\n");
 		return EXIT_FAILURE;
 	}
 
-	char *filename = NULL;
+	filename = NULL;
 
-	unsigned int i;
 	for (i = 0; argc; ++i) {
+		char *arg;
 		(void)i;
 
-		char *arg = args_shift(&argc, &argv);
+		arg = args_shift(&argc, &argv);
 
 		if (strcmp(arg, "--help") == 0) {
 			printf("Usage: qvm [OPTION]... [INPUT]\n");
@@ -36,10 +41,11 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	dword size;
-	byte *buf = fs_read(filename, &size);
+	buf = fs_read(filename, &size);
 	if (buf) {
-		VM *vm = vm_new();
+		VM *vm;
+
+		vm = vm_new();
 
 		memcpy(vm->memory, buf, size);
 		free(buf);

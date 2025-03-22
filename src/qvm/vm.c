@@ -106,13 +106,13 @@ CALLEOWNS char *vm_get_regname_from_index(VM *vm, byte index) {
 		strncpy(buf, "r9", 3);
 		break;
 	case 10:
-		strncpy(buf, "r10", 3);
+		strncpy(buf, "r10", 4);
 		break;
 	case 11:
-		strncpy(buf, "r11", 3);
+		strncpy(buf, "r11", 4);
 		break;
 	case 12:
-		strncpy(buf, "r12", 3);
+		strncpy(buf, "r12", 4);
 		break;
 	case 13:
 		strncpy(buf, "sp", 3);
@@ -124,15 +124,18 @@ CALLEOWNS char *vm_get_regname_from_index(VM *vm, byte index) {
 		strncpy(buf, "ip", 3);
 		break;
 	default:
-		strncpy(buf, "???", 3);
+		strncpy(buf, "???", 4);
 		break;
 	}
 	return buf;
 }
 
 void vm_get_forward(VM *vm, byte **buf, byte n) {
+	dword start;
+
 	*buf = malloc(n);
-	dword start = vm->regs.ip;
+	start = vm->regs.ip;
+
 	while (vm->regs.ip < start + n) {
 		(*buf)[vm->regs.ip - start] = vm->memory[vm->regs.ip];
 		vm->regs.ip++;
@@ -144,24 +147,30 @@ void vm_do_instruction(VM *vm) {
 
 	byte first_byte = vm->memory[vm->regs.ip];
 	if (first_byte >= MOV_R0 && first_byte <= MOV_IP) {
+		char *a, *b;
+
 		vm_get_forward(vm, &bytes, 2);
 
 		vm_mov(vm, vm_get_register_from_index(vm, first_byte - MOV_R0), vm_get_register_from_index(vm, bytes[1]));
 
-		char *a = vm_get_regname_from_index(vm, first_byte);
-		char *b = vm_get_regname_from_index(vm, bytes[1]);
+		a = vm_get_regname_from_index(vm, first_byte);
+		b = vm_get_regname_from_index(vm, bytes[1]);
 		snprintf(vm->last_disassembly, DISASM_STR_SIZE, "mov %s %s", a, b);
 		free(a);
 		free(b);
 
 		free(bytes);
 	} else if (first_byte >= MOVI_R0 && first_byte <= MOVI_IP) {
+		char *a;
+		dword b;
+
 		vm_get_forward(vm, &bytes, 5);
 
 		vm_movi(vm, vm_get_register_from_index(vm, first_byte - MOVI_R0), fromQendian(&bytes[1]));
 
-		char *a = vm_get_regname_from_index(vm, first_byte);
-		dword b = fromQendian(&bytes[1]);
+		a = vm_get_regname_from_index(vm, first_byte);
+		b = fromQendian(&bytes[1]);
+
 		snprintf(vm->last_disassembly, DISASM_STR_SIZE, "mov %s %d  @ movi %s %d", a, b, a, b);
 		free(a);
 
@@ -201,10 +210,11 @@ void vm_do_instruction(VM *vm) {
 
 		free(bytes);
 	} else if (first_byte >= BE && first_byte <= BGE) {
+		dword dest;
+
 		vm_get_forward(vm, &bytes, 6);
 		vm->regs.ip -= 6;
 
-		dword dest;
 		if (bytes[1] == JMP_CONST) {
 			dest = fromQendian(&(bytes[2]));
 			vm->regs.ip += 6;

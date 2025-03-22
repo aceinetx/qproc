@@ -95,13 +95,14 @@ byte get_register_index_from_name(char *name) {
 }
 
 bool assembler_do_const_operand(Assembler *this, Token *token) {
+	int i;
+	byte *bytes;
+
 	if (this->preprocessor)
 		return true;
 
-	int i;
-
 	if (token->type == T_NUM) {
-		byte *bytes = toQendian(token->value_u);
+		bytes = toQendian(token->value_u);
 		for (i = 0; i < 4; i++) {
 			assembler_outb(this, bytes[i]);
 		}
@@ -113,7 +114,7 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 			return false;
 		}
 
-		byte *bytes = toQendian(label->addr);
+		bytes = toQendian(label->addr);
 		for (i = 0; i < 4; i++) {
 			assembler_outb(this, bytes[i]);
 		}
@@ -147,9 +148,11 @@ void assembler_assemble(Assembler *this) {
 			 * INSTRUCTIONS
 			 */
 			if (strcmp(token.value_s, "mov") == 0) {
+				Token left, right;
+
 				this->addr += 0x2;
-				Token left = lexer_next(this->lexer);
-				Token right = lexer_next(this->lexer);
+				left = lexer_next(this->lexer);
+				right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
 					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in mov\n", this->lexer->line);
@@ -173,9 +176,12 @@ void assembler_assemble(Assembler *this) {
 				}
 
 			} else if (strcmp(token.value_s, "movi") == 0) {
+				Token left, right;
+
 				this->addr += 0x5;
-				Token left = lexer_next(this->lexer);
-				Token right = lexer_next(this->lexer);
+
+				left = lexer_next(this->lexer);
+				right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
 					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in mov\n", this->lexer->line);
@@ -340,9 +346,12 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, size.value_u);
 				assembler_outb(this, get_register_index_from_name(src.value_s));
 			} else if (strcmp(token.value_s, "add") == 0) {
+				Token left, right;
+
 				this->addr += 0x2;
-				Token left = lexer_next(this->lexer);
-				Token right = lexer_next(this->lexer);
+
+				left = lexer_next(this->lexer);
+				right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
 					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in add\n", this->lexer->line);
@@ -357,9 +366,11 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, get_register_index_from_name(right.value_s));
 
 			} else if (strcmp(token.value_s, "sub") == 0) {
+				Token left, right;
 				this->addr += 0x2;
-				Token left = lexer_next(this->lexer);
-				Token right = lexer_next(this->lexer);
+
+				left = lexer_next(this->lexer);
+				right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
 					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in sub\n", this->lexer->line);
@@ -407,9 +418,12 @@ void assembler_assemble(Assembler *this) {
 				this->addr += 0x1;
 				assembler_outb(this, QDB);
 			} else if (strcmp(token.value_s, "mul") == 0) {
+				Token left, right;
+
 				this->addr += 0x2;
-				Token left = lexer_next(this->lexer);
-				Token right = lexer_next(this->lexer);
+
+				left = lexer_next(this->lexer);
+				right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
 					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in mul\n", this->lexer->line);
@@ -424,9 +438,12 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, get_register_index_from_name(right.value_s));
 
 			} else if (strcmp(token.value_s, "div") == 0) {
+				Token left, right;
+
 				this->addr += 0x2;
-				Token left = lexer_next(this->lexer);
-				Token right = lexer_next(this->lexer);
+
+				left = lexer_next(this->lexer);
+				right = lexer_next(this->lexer);
 
 				if (left.type != T_REGISTER) {
 					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: excepted a register in div\n", this->lexer->line);

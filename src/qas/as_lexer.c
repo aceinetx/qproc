@@ -33,7 +33,7 @@ bool is_digit(char c) {
 }
 
 bool is_letter(char c) {
-	return (c >= 'a' && c <= 'z' || (c >= 'A' && c <= 'Z') || c == '.');
+	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '.');
 }
 
 bool is_symbol(char c) {
@@ -41,11 +41,14 @@ bool is_symbol(char c) {
 }
 
 Token lexer_number(Lexer *lexer) {
-	Token tok = token_new();
+	Token tok;
+	bool is_hex;
+
+	tok = token_new();
 	tok.type = T_NUM;
 	tok.line = lexer->line;
 
-	bool is_hex = false;
+	is_hex = false;
 
 	while (lexer->pos < lexer->code_len) {
 		char c = lexer->code[lexer->pos];
@@ -61,7 +64,9 @@ Token lexer_number(Lexer *lexer) {
 		}
 
 		if (is_hex) {
-			bool invalid = false;
+			bool invalid;
+
+			invalid = false;
 			tok.value_u *= 16;
 
 			if (is_digit(c)) {
@@ -107,11 +112,14 @@ Token lexer_number(Lexer *lexer) {
 }
 
 Token lexer_identifier(Lexer *lexer) {
-	Token tok = token_new();
+	Token tok;
+	size_t len;
+
+	tok = token_new();
 	tok.type = T_IDENTIFIER;
 	tok.line = lexer->line;
 
-	size_t len = strlen(tok.value_s);
+	len = strlen(tok.value_s);
 	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
 
@@ -151,11 +159,14 @@ Token lexer_identifier(Lexer *lexer) {
 }
 
 Token lexer_directive(Lexer *lexer) {
-	Token tok = token_new();
+	Token tok;
+	size_t len;
+
+	tok = token_new();
 	tok.type = T_DIRECTIVE;
 	tok.line = lexer->line;
 
-	size_t len = strlen(tok.value_s);
+	len = strlen(tok.value_s);
 	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
 
@@ -173,12 +184,16 @@ Token lexer_directive(Lexer *lexer) {
 }
 
 Token lexer_string(Lexer *lexer) {
-	Token tok = token_new();
+	Token tok;
+	size_t len;
+	bool definition;
+
+	tok = token_new();
 	tok.type = T_STRING;
 	tok.line = lexer->line;
 
-	size_t len = strlen(tok.value_s);
-	bool definition = false;
+	len = strlen(tok.value_s);
+	definition = false;
 	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
 
@@ -207,6 +222,7 @@ Token lexer_string(Lexer *lexer) {
 }
 
 Token lexer_next(Lexer *lexer) {
+	Token tok;
 	bool in_comment = false;
 	while (lexer->pos < lexer->code_len) {
 		char c = lexer->code[lexer->pos];
@@ -238,7 +254,7 @@ Token lexer_next(Lexer *lexer) {
 
 		lexer->pos++;
 	}
-	Token tok = token_new();
+	tok = token_new();
 	tok.type = T_EOF;
 	tok.line = lexer->line;
 	return tok;

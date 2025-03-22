@@ -14,13 +14,18 @@ char *args_shift(int *argc, char ***argv) {
 }
 
 byte *fs_read(const char *filename, dword *outSize) {
-	FILE *file = fopen(filename, "rb");
+	FILE *file;
+	long fileSize;
+	byte *buffer;
+	dword bytesRead;
+
+	file = fopen(filename, "rb");
 	if (!file) {
 		return NULL;
 	}
 
 	fseek(file, 0, SEEK_END);
-	long fileSize = ftell(file);
+	fileSize = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
 	if (fileSize < 0) {
@@ -28,13 +33,13 @@ byte *fs_read(const char *filename, dword *outSize) {
 		return NULL;
 	}
 
-	byte *buffer = (byte *)malloc(fileSize);
+	buffer = (byte *)malloc(fileSize);
 	if (!buffer) {
 		fclose(file);
 		return NULL;
 	}
 
-	dword bytesRead = fread(buffer, 1, fileSize, file);
+	bytesRead = fread(buffer, 1, fileSize, file);
 	if (bytesRead != fileSize) {
 		free(buffer);
 		fclose(file);

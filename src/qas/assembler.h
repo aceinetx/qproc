@@ -18,7 +18,7 @@ typedef struct {
 	Label *labels;
 	bool preprocessor;
 	dword bytes_assembled;
-	char no_fd_buf[32767]; // A buffer for cases if FILE* out is NULL, we assume that's intended and instead output the bytes into this buffer
+	char no_fd_buf[32767]; /* A buffer for cases if FILE* out is NULL, we assume that's intended and instead output the bytes into this buffer */
 	char *no_fd_buf_p;
 	char logs[512];
 	bool no_stdout;

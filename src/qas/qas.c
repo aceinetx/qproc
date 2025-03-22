@@ -5,19 +5,24 @@
 #include <util.h>
 
 int main(int argc, char **argv) {
+	char *filename, *output_filename;
+	dword size;
+	byte *buf;
+	unsigned int i;
+
 	if (sizeof(dword) != 4) {
 		printf("[qvm] FATAL: sizeof(dword) != 4, cannot continue\n");
 		return EXIT_FAILURE;
 	}
 
-	char *filename = NULL;
-	char *output_filename = "a.out";
+	filename = NULL;
+	output_filename = "a.out";
 
-	unsigned int i;
 	for (i = 0; argc; ++i) {
+		char *arg;
 		(void)i;
 
-		char *arg = args_shift(&argc, &argv);
+		arg = args_shift(&argc, &argv);
 
 		if (strcmp(arg, "--help") == 0) {
 			printf("Usage: qas [OPTION]... [INPUT]\n");
@@ -41,13 +46,16 @@ int main(int argc, char **argv) {
 	printf("[qas] source: %s\n", filename);
 	printf("[qas] output: %s\n", output_filename);
 
-	dword size;
-	byte *buf = fs_read(filename, &size);
+	buf = fs_read(filename, &size);
 	if (buf) {
-		FILE *out = fopen(output_filename, "w");
+		FILE *out;
+		Lexer *lexer;
+		Assembler *assembler;
 
-		Lexer *lexer = lexer_new((char *)buf);
-		Assembler *assembler = assembler_new(out, lexer);
+		out = fopen(output_filename, "w");
+
+		lexer = lexer_new((char *)buf);
+		assembler = assembler_new(out, lexer);
 
 		assembler_assemble(assembler);
 
