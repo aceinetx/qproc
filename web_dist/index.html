@@ -18,9 +18,10 @@
 	</head>
 	
 	<body>
-		<h1>Qproc online assembler</h1>
-		<div data-mdb-input-init class="form-outline">
-  		<textarea class="form-control" id="code" name="code" rows="20">
+		<div class="container-fluid">
+			<h1>Qproc online assembler</h1>
+			<div data-mdb-input-init class="form-outline">
+				<textarea class="form-control" id="code" name="code" rows="20">
 call main
 hlt
 
@@ -62,15 +63,16 @@ main:
 	pop ip
 	 
 hw: #byte "Hello, world!"
-			</textarea>
-		</div>
+				</textarea>
+			</div>
 
-		<br>
-		<button type="button" class="btn btn-primary" id="assemble">Assemble</button>
+			<br>
+			<button type="button" class="btn btn-primary" id="assemble">Assemble</button>
 
-		<h3>Output: </h3>
-		<div data-mdb-input-init class="form-outline">
-  		<textarea class="form-control" id="output" name="output" rows="5"></textarea>
+			<h3>Output: </h3>
+			<div data-mdb-input-init class="form-outline">
+				<textarea class="form-control" id="output" name="output" rows="5"></textarea>
+			</div>
 		</div>
 
 		<script type="text/javascript" src="web.js"></script>
