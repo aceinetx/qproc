@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <util.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 char *args_shift(int *argc, char ***argv) {
 	assert(*argc > 0 && "argc <= 0");
 	--(*argc);
@@ -54,7 +50,3 @@ byte *fs_read(const char *filename, dword *outSize) {
 
 	return buffer;
 }
-
-#ifdef __cplusplus
-}
-#endif
