@@ -467,8 +467,7 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, SWI);
 				assembler_outb(this, op.value_u);
 			} else {
-				snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: invalid identifier: %s\n", this->lexer->line, token.value_s);
-				break;
+				snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: warn: invalid identifier: %s\n", this->lexer->line, token.value_s);
 			}
 		} else if (token.type == T_DIRECTIVE) {
 			/*
