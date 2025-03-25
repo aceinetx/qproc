@@ -11,3 +11,5 @@ _deps
 CMakeUserPresets.json
 build
 build/*
+.cache/*
+.cache

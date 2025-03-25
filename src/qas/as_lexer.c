@@ -1,10 +1,9 @@
 #include <as_lexer.h>
 #include <opcodes.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 
-Token token_new() {
+Token token_new(void) {
 	Token tok;
 	tok.type = T_NULL;
 	tok.value_u = 0;
