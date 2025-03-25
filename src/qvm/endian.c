@@ -1,7 +1,7 @@
 #include <endian.h>
 #include <stdlib.h>
 
-int fromQendian(byte *bytes) {
+dword fromQendian(byte *bytes) {
 	dword value = 0;
 	dword i = 0;
 	for (; i < 4; ++i) {
@@ -10,7 +10,7 @@ int fromQendian(byte *bytes) {
 	return value;
 }
 
-CALLEOWNS byte *toQendian(int n) {
+CALLEOWNS byte *toQendian(dword n) {
 	byte *bytes = malloc(4);
 	size_t i = 0;
 	for (; i < 4; ++i) {
@@ -19,7 +19,7 @@ CALLEOWNS byte *toQendian(int n) {
 	return bytes;
 }
 
-void ftoQendian(FILE *fd, int n) {
+void ftoQendian(FILE *fd, dword n) {
 	size_t i = 0;
 	for (; i < 4; ++i) {
 		fprintf(fd, "%c", (n >> (i * 8)) & 0xFF);

@@ -1,5 +1,7 @@
+#include <endian.h>
 #include <instructions.h>
 #include <opcodes.h>
+#include <stdlib.h>
 
 void vm_mov(VM *vm, dword *dest, dword *src) {
 	*dest = *src;
@@ -12,13 +14,13 @@ void vm_movi(VM *vm, dword *dest, dword src) {
 void vm_lod(VM *vm, dword *dest, dword *src_addr, byte size_specifier) {
 	switch (size_specifier) {
 	case SS_DWORD:
-		*dest = vm->memory[*src_addr];
+		*dest = fromQendian(&vm->memory[*src_addr]);
 		break;
 	case SS_WORD:
-		*dest = (word)(vm->memory[*src_addr]);
+		*dest = (word)(fromQendian(&vm->memory[*src_addr]));
 		break;
 	case SS_BYTE:
-		*dest = (byte)(vm->memory[*src_addr]);
+		*dest = (byte)(fromQendian(&vm->memory[*src_addr]));
 		break;
 	default:
 		break;
@@ -26,19 +28,21 @@ void vm_lod(VM *vm, dword *dest, dword *src_addr, byte size_specifier) {
 }
 
 void vm_str(VM *vm, dword *dest_addr, dword *src, byte size_specifier) {
+	byte *src_conv = toQendian(*src);
 	switch (size_specifier) {
 	case SS_DWORD:
-		memcpy(&(vm->memory[*dest_addr]), src, 4);
+		memcpy(&(vm->memory[*dest_addr]), src_conv, 4);
 		break;
 	case SS_WORD:
-		memcpy(&(vm->memory[*dest_addr]), src, 2);
+		memcpy(&(vm->memory[*dest_addr]), src_conv, 2);
 		break;
 	case SS_BYTE:
-		memcpy(&(vm->memory[*dest_addr]), src, 1);
+		memcpy(&(vm->memory[*dest_addr]), src_conv, 1);
 		break;
 	default:
 		break;
 	}
+	free(src_conv);
 }
 
 void vm_cmp(VM *vm, dword *left, dword *right) {
@@ -52,17 +56,21 @@ void vm_cmp(VM *vm, dword *left, dword *right) {
 }
 
 void vm_pushi(VM *vm, dword source) {
-	memcpy(&(vm->memory[vm->regs.sp - 4]), &source, 4);
+	byte *src_conv = toQendian(source);
+	memcpy(&(vm->memory[vm->regs.sp - 4]), src_conv, 4);
 	vm->regs.sp -= 4;
+	free(src_conv);
 }
 
 void vm_push(VM *vm, dword *source) {
-	memcpy(&(vm->memory[vm->regs.sp - 4]), source, 4);
+	byte *src_conv = toQendian(*source);
+	memcpy(&(vm->memory[vm->regs.sp - 4]), src_conv, 4);
 	vm->regs.sp -= 4;
+	free(src_conv);
 }
 
 void vm_pop(VM *vm, dword *dest) {
-	*dest = vm->memory[vm->regs.sp];
+	*dest = fromQendian(&vm->memory[vm->regs.sp]);
 	vm->regs.sp += 4;
 }
 
@@ -83,10 +91,16 @@ void vm_div(VM *vm, dword *dest, dword *source) {
 }
 
 void vm_swi(VM *vm, byte index) {
+	dword swi_table_dest;
 	switch (index) {
 	case INT_PUTC:
 		putc(vm->regs.r0, stdout);
 		break;
+	default:
+		/* assume it's a call to software interrupt table */
+		swi_table_dest = fromQendian(&vm->memory[SWI_TABLE + (index * sizeof(dword))]);
+
+		vm_calli(vm, swi_table_dest);
 	}
 }
 
