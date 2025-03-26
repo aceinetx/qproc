@@ -1,4 +1,4 @@
-call main
+call bootloader_main
 hlt
 
 puts:
@@ -10,7 +10,7 @@ puts:
 	sub r2 r2
 	mov r3 1
 
-	puts_loop:
+	putsloop:
 		lod r1 byte r0
 
 		push r0
@@ -21,7 +21,7 @@ puts:
 		add r0 r3
 
 		cmp r1 r2
-		bne puts_loop
+		bne putsloop
 
 	mov r0 10
 	swi 1
@@ -32,10 +32,13 @@ puts:
 	pop r0
 	pop ip
 
-main:
-	mov r0 hw
+bootloader_main:
+	mov r0 msg
 	call puts
 
+	call setup_syscalls
+
 	pop ip
-	 
-hw: #byte "Hello, world!"
+
+msg: #byte "QOS"
+

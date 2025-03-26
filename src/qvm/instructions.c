@@ -1,4 +1,9 @@
-#include <qproc.h>
+#include <endian.h>
+#include <instructions.h>
+#include <opcodes.h>
+#include <qvm.h>
+#include <stdlib.h>
+#include <vm.h>
 
 void vm_mov(VM *vm, dword *dest, dword *src) {
 	*dest = *src;
@@ -92,6 +97,9 @@ void vm_swi(VM *vm, byte index) {
 	switch (index) {
 	case INT_PUTC:
 		putc(vm->regs.r0, stdout);
+		break;
+	case INT_GETC:
+		vm->regs.r0 = getchar();
 		break;
 	default:
 		/* assume it's a call to software interrupt table */

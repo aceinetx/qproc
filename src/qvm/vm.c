@@ -1,4 +1,7 @@
-#include <qproc.h>
+#include <instructions.h>
+#include <opcodes.h>
+#include <stdlib.h>
+#include <vm.h>
 
 VM *vm_new(void) {
 	VM *vm = malloc(sizeof(VM));

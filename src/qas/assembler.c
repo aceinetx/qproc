@@ -1,4 +1,7 @@
-#include <qproc.h>
+#include <assembler.h>
+#include <opcodes.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 const dword LABELS_MAX = 128;
 
@@ -123,6 +126,7 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 
 void assembler_assemble(Assembler *this) {
 	this->preprocessor = true;
+	this->addr = 0;
 	for (;;) {
 		Token token = lexer_next(this->lexer);
 		if (token.type == T_EOF) {
@@ -476,11 +480,14 @@ void assembler_assemble(Assembler *this) {
 					char *c = op.value_s;
 					while (*c != 0) {
 						assembler_outb(this, *c);
+						this->addr += 0x1;
 						c++;
 					}
 					assembler_outb(this, 0);
+					this->addr += 0x1;
 				} else if (op.type == T_NUM) {
 					assembler_outb(this, op.value_u);
+					this->addr += 0x1;
 				} else {
 					snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: invalid argument type for #byte\n", this->lexer->line);
 					break;

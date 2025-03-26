@@ -1,4 +1,9 @@
-#include <qproc.h>
+#include <opcodes.h>
+#include <qvm.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <util.h>
+#include <vm.h>
 
 int main(int argc, char **argv) {
 	char *filename;

@@ -1,4 +1,7 @@
-#include <qproc.h>
+#include <as_lexer.h>
+#include <opcodes.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 Token token_new(void) {
 	Token tok;
@@ -26,6 +29,10 @@ void lexer_delete(Lexer *lexer) {
 
 bool is_digit(char c) {
 	return (c >= '0' && c <= '9');
+}
+
+bool is_identifier_letter(char c) {
+	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_');
 }
 
 bool is_letter(char c) {
@@ -119,7 +126,7 @@ Token lexer_identifier(Lexer *lexer) {
 	while (lexer->pos < lexer->code_len && len < LEXER_STR_MAX) {
 		char c = lexer->code[lexer->pos];
 
-		if (!is_letter(c) && !is_digit(c)) {
+		if (!is_identifier_letter(c) && !is_digit(c)) {
 			if (c == ':') {
 				tok.type = T_LABEL;
 			}
