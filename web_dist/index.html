@@ -34,7 +34,7 @@ puts:
 	sub r2 r2
 	mov r3 1
 
-.putsloop:
+puts_loop:
 	lod r1 byte r0
 
 	push r0
@@ -45,7 +45,7 @@ puts:
 	add r0 r3
 
 	cmp r1 r2
-	bne .putsloop
+	bne puts_loop
 
 	mov r0 10
 	swi 1
