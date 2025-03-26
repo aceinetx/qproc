@@ -1,9 +1,4 @@
-#include <endian.h>
-#include <instructions.h>
-#include <opcodes.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <vm.h>
+#include <qproc.h>
 
 VM *vm_new(void) {
 	VM *vm = malloc(sizeof(VM));

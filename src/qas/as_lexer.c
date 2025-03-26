@@ -1,7 +1,4 @@
-#include <as_lexer.h>
-#include <opcodes.h>
-#include <stdbool.h>
-#include <stdlib.h>
+#include <qproc.h>
 
 Token token_new(void) {
 	Token tok;

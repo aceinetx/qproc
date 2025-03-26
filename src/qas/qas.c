@@ -1,8 +1,4 @@
-#include <as_lexer.h>
-#include <assembler.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <util.h>
+#include <qproc.h>
 
 int main(int argc, char **argv) {
 	char *filename, *output_filename;

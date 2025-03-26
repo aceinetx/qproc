@@ -1,7 +1,4 @@
-#include <assembler.h>
-#include <endian.h>
-#include <opcodes.h>
-#include <stdlib.h>
+#include <qproc.h>
 
 const dword LABELS_MAX = 128;
 

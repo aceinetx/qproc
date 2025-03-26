@@ -1,7 +1,4 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <util.h>
+#include <qproc.h>
 
 char *args_shift(int *argc, char ***argv) {
 	assert(*argc > 0 && "argc <= 0");

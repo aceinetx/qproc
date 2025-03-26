@@ -1,7 +1,4 @@
-#include <endian.h>
-#include <instructions.h>
-#include <opcodes.h>
-#include <stdlib.h>
+#include <qproc.h>
 
 void vm_mov(VM *vm, dword *dest, dword *src) {
 	*dest = *src;

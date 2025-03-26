@@ -1,5 +1,4 @@
-#include <endian.h>
-#include <stdlib.h>
+#include <qproc.h>
 
 dword fromQendian(byte *bytes) {
 	dword value = 0;
