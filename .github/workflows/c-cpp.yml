@@ -31,8 +31,10 @@ jobs:
           cd ../test
           make -j$(nproc)
           mv a.bin ../helloworld.bin
-          cd ..
-          tar -czvf programs.tar.gz helloworld.bin
+          cd ../assembly
+          make -j$(nproc)
+          mv qos.bin ..
+          tar -czvf programs.tar.gz helloworld.bin qos.bin
       
       - name: Upload artifact (programs)
         uses: actions/upload-artifact@v4

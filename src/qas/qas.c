@@ -90,8 +90,6 @@ int main(int argc, char **argv) {
 	memcpy(buf + total_size, "\0\0\0\0\0", 5);
 	total_size += 5;
 
-	printf("%s\n", buf);
-
 	if (buf) {
 		FILE *out;
 		Lexer *lexer;
