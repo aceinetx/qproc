@@ -1,4 +1,5 @@
 #include <assembler.h>
+#include <endian.h>
 #include <opcodes.h>
 #include <stdbool.h>
 #include <stdlib.h>

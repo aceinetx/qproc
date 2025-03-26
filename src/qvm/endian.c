@@ -1,4 +1,5 @@
 #include <qvm.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 dword fromQendian(byte *bytes) {
