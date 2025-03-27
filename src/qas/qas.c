@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
 	memset(sources_store, 0, sizeof(sources_store));
 
 	output_filename = "a.out";
+	glued = false;
 
 	for (i = 0; argc; ++i) {
 		char *arg;
