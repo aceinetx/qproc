@@ -12,6 +12,10 @@ typedef uint32_t dword;
 #define MiB(times) (KiB(times) * 1024)
 #define GiB(times) (MiB(times) * 1024)
 
+#define rKiB(times) (times / 1024)
+#define rMiB(times) (rKiB(times) / 1024)
+#define rGiB(times) (rMiB(times) / 1024)
+
 #define MEMORY_SIZE KiB(16)
 
 #define SWI_TABLE 0x10000
