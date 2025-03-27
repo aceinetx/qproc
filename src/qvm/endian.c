@@ -3,8 +3,10 @@
 #include <stdlib.h>
 
 dword fromQendian(byte *bytes) {
-	dword value = 0;
-	dword i = 0;
+	dword value, i;
+
+	value = 0;
+	i = 0;
 	for (; i < 4; ++i) {
 		value |= ((dword)(bytes[i]) << (i * 8));
 	}

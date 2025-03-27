@@ -14,9 +14,20 @@ shell:
 		sub r0 r1
 		swi 0x3
 
-		call puts
+		mov r12 r0
+
+		mov r1 exit_s
+		call strcmp
+		sub r1 r1
+		cmp r0 r1
+		be shell_ret
+
+		mov r0 r12
+		call putsn
 
 	b shell_loop
+
+shell_ret:
 
 	mov sp bp
 	pop bp
@@ -25,3 +36,4 @@ shell:
 
 shell_msg: #byte "QOS Shell"
 arrow_s: #byte 62 #byte 0x20 #byte 0
+exit_s: #byte "exit"

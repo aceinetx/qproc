@@ -94,6 +94,8 @@ void vm_div(VM *vm, dword *dest, dword *source) {
 
 void vm_swi(VM *vm, byte index) {
 	dword swi_table_dest;
+	char *buffer;
+
 	switch (index) {
 	case INT_PUTC:
 		putc(vm->regs.r0, stdout);
@@ -102,7 +104,11 @@ void vm_swi(VM *vm, byte index) {
 		vm->regs.r0 = getchar();
 		break;
 	case INT_GETS:
-		fgets((char *)&vm->memory[vm->regs.r0], vm->regs.r1, stdin);
+		buffer = (char *)&vm->memory[vm->regs.r0];
+		fgets(buffer, vm->regs.r1, stdin);
+
+		buffer[strcspn(buffer, "\n")] = 0;
+
 		break;
 	default:
 		/* assume it's a call to software interrupt table */
