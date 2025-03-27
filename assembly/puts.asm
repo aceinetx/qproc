@@ -21,7 +21,7 @@ puts:
 		bne putsloop
 
 	mov r0 10
-	swi 1
+	swi 0x1
 
 	pop r3
 	pop r2	
