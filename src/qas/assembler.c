@@ -151,10 +151,12 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 }
 
 void assembler_assemble(Assembler *this) {
+	Token token, left, right, op, dest, src, size;
+
 	this->preprocessor = true;
 	this->addr = 0;
 	for (;;) {
-		Token token = lexer_next(this->lexer);
+		token = lexer_next(this->lexer);
 		if (token.type == T_EOF) {
 
 			if (!this->preprocessor)
@@ -175,8 +177,6 @@ void assembler_assemble(Assembler *this) {
 			 * INSTRUCTIONS
 			 */
 			if (strcmp(token.value_s, "mov") == 0) {
-				Token left, right;
-
 				this->addr += 0x2;
 				left = lexer_next(this->lexer);
 				right = lexer_next(this->lexer);
@@ -203,8 +203,6 @@ void assembler_assemble(Assembler *this) {
 				}
 
 			} else if (strcmp(token.value_s, "movi") == 0) {
-				Token left, right;
-
 				this->addr += 0x5;
 
 				left = lexer_next(this->lexer);
@@ -232,9 +230,9 @@ void assembler_assemble(Assembler *this) {
 				this->addr += 0x1;
 				assembler_outb(this, NOP);
 			} else if (strcmp(token.value_s, "lod") == 0) {
-				Token dest = lexer_next(this->lexer);
-				Token size = lexer_next(this->lexer);
-				Token src = lexer_next(this->lexer);
+				dest = lexer_next(this->lexer);
+				size = lexer_next(this->lexer);
+				src = lexer_next(this->lexer);
 				this->addr += 3;
 
 				if (src.type != T_REGISTER) {
@@ -256,8 +254,8 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, size.value_u);
 				assembler_outb(this, get_register_index_from_name(dest.value_s));
 			} else if (strcmp(token.value_s, "cmp") == 0) {
-				Token left = lexer_next(this->lexer);
-				Token right = lexer_next(this->lexer);
+				left = lexer_next(this->lexer);
+				right = lexer_next(this->lexer);
 				this->addr += 0x2;
 
 				if (left.type != T_REGISTER) {
@@ -273,7 +271,7 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, get_register_index_from_name(left.value_s) + CMP_R0);
 				assembler_outb(this, get_register_index_from_name(right.value_s));
 			} else if (strcmp(token.value_s, "push") == 0) {
-				Token op = lexer_next(this->lexer);
+				op = lexer_next(this->lexer);
 
 				if (op.type != T_REGISTER && op.type != T_NUM) {
 					assembler_error(this, &op, "excepted a register || number in push");
@@ -288,7 +286,7 @@ void assembler_assemble(Assembler *this) {
 					assembler_outb(this, get_register_index_from_name(op.value_s));
 				}
 			} else if (strcmp(token.value_s, "pushi") == 0) {
-				Token op = lexer_next(this->lexer);
+				op = lexer_next(this->lexer);
 
 				if (op.type != T_NUM) {
 					assembler_error(this, &op, "excepted a number in pushi");
@@ -298,7 +296,7 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, PUSHI);
 				assembler_do_const_operand(this, &op);
 			} else if (strcmp(token.value_s, "pop") == 0) {
-				Token op = lexer_next(this->lexer);
+				op = lexer_next(this->lexer);
 
 				if (op.type != T_REGISTER) {
 					assembler_error(this, &op, "excepted a register in pop");
@@ -308,7 +306,7 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, POP);
 				assembler_outb(this, get_register_index_from_name(op.value_s));
 			} else if (token.value_s[0] == 'b') {
-				Token op = lexer_next(this->lexer);
+				op = lexer_next(this->lexer);
 				if (op.type != T_REGISTER && op.type != T_NUM && op.type != T_IDENTIFIER) {
 					assembler_error(this, &op, "excepted a register || number || label in branch-like instruction");
 					break;
@@ -349,9 +347,9 @@ void assembler_assemble(Assembler *this) {
 					}
 				}
 			} else if (strcmp(token.value_s, "str") == 0) {
-				Token size = lexer_next(this->lexer);
-				Token dest = lexer_next(this->lexer);
-				Token src = lexer_next(this->lexer);
+				size = lexer_next(this->lexer);
+				dest = lexer_next(this->lexer);
+				src = lexer_next(this->lexer);
 				this->addr += 3;
 
 				if (src.type != T_REGISTER) {
@@ -412,7 +410,7 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, get_register_index_from_name(right.value_s));
 
 			} else if (strcmp(token.value_s, "call") == 0) {
-				Token op = lexer_next(this->lexer);
+				op = lexer_next(this->lexer);
 
 				if (op.type != T_REGISTER && op.type != T_IDENTIFIER && op.type != T_NUM) {
 					assembler_error(this, &op, "excepted a register || label || number in call");
@@ -430,7 +428,7 @@ void assembler_assemble(Assembler *this) {
 				}
 
 			} else if (strcmp(token.value_s, "calli") == 0) {
-				Token op = lexer_next(this->lexer);
+				op = lexer_next(this->lexer);
 
 				if (op.type != T_IDENTIFIER && op.type != T_NUM) {
 					assembler_error(this, &op, "excepted a label || number in call");
@@ -463,7 +461,6 @@ void assembler_assemble(Assembler *this) {
 				}
 				assembler_outb(this, get_register_index_from_name(left.value_s) + MUL_R0);
 				assembler_outb(this, get_register_index_from_name(right.value_s));
-
 			} else if (strcmp(token.value_s, "div") == 0) {
 				Token left, right;
 
@@ -484,7 +481,7 @@ void assembler_assemble(Assembler *this) {
 				assembler_outb(this, get_register_index_from_name(left.value_s) + DIV_R0);
 				assembler_outb(this, get_register_index_from_name(right.value_s));
 			} else if (strcmp(token.value_s, "swi") == 0) {
-				Token op = lexer_next(this->lexer);
+				op = lexer_next(this->lexer);
 
 				if (op.type != T_NUM) {
 					assembler_error(this, &op, "excepted a number in swi");
@@ -493,6 +490,63 @@ void assembler_assemble(Assembler *this) {
 				this->addr += 0x2;
 				assembler_outb(this, SWI);
 				assembler_outb(this, op.value_u);
+			} else if (strcmp(token.value_s, "or") == 0) {
+				Token left, right;
+
+				this->addr += 0x2;
+
+				left = lexer_next(this->lexer);
+				right = lexer_next(this->lexer);
+
+				if (left.type != T_REGISTER) {
+					assembler_error(this, &left, "excepted a register in or");
+					break;
+				}
+
+				if (right.type != T_REGISTER) {
+					assembler_error(this, &right, "excepted a register in or");
+					break;
+				}
+				assembler_outb(this, get_register_index_from_name(left.value_s) + OR_R0);
+				assembler_outb(this, get_register_index_from_name(right.value_s));
+			} else if (strcmp(token.value_s, "xor") == 0) {
+				Token left, right;
+
+				this->addr += 0x2;
+
+				left = lexer_next(this->lexer);
+				right = lexer_next(this->lexer);
+
+				if (left.type != T_REGISTER) {
+					assembler_error(this, &left, "excepted a register in xor");
+					break;
+				}
+
+				if (right.type != T_REGISTER) {
+					assembler_error(this, &right, "excepted a register in xor");
+					break;
+				}
+				assembler_outb(this, get_register_index_from_name(left.value_s) + XOR_R0);
+				assembler_outb(this, get_register_index_from_name(right.value_s));
+			} else if (strcmp(token.value_s, "and") == 0) {
+				Token left, right;
+
+				this->addr += 0x2;
+
+				left = lexer_next(this->lexer);
+				right = lexer_next(this->lexer);
+
+				if (left.type != T_REGISTER) {
+					assembler_error(this, &left, "excepted a register in and");
+					break;
+				}
+
+				if (right.type != T_REGISTER) {
+					assembler_error(this, &right, "excepted a register in and");
+					break;
+				}
+				assembler_outb(this, get_register_index_from_name(left.value_s) + AND_R0);
+				assembler_outb(this, get_register_index_from_name(right.value_s));
 			} else {
 				snprintf(this->logs, sizeof(this->logs), "[qas] [%d]: warn: invalid identifier: %s\n", this->lexer->line, token.value_s);
 			}
@@ -501,7 +555,7 @@ void assembler_assemble(Assembler *this) {
 			 * DIRECTIVES
 			 */
 			if (strcmp(token.value_s, "#byte") == 0) {
-				Token op = lexer_next(this->lexer);
+				op = lexer_next(this->lexer);
 				if (op.type == T_STRING) {
 					char *c = op.value_s;
 					while (*c != 0) {
@@ -519,7 +573,7 @@ void assembler_assemble(Assembler *this) {
 					break;
 				}
 			} else if (strcmp(token.value_s, "#org") == 0) {
-				Token op = lexer_next(this->lexer);
+				op = lexer_next(this->lexer);
 				if (op.type == T_NUM) {
 					this->addr = op.value_u;
 				} else {

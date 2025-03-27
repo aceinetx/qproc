@@ -4,22 +4,26 @@ puts:
 	push r2
 	push r3
 
+	; clear r2
 	sub r2 r2
-	mov r3 1
+	mov r1 1
+
+	; move string address into r3
+	mov r3 r0
 
 	putsloop:
-		lod r1 byte r0
+		; load current string byte
+		lod r0 byte r3
+		cmp r0 r2
+		be putsend
 
-		push r0
-		mov r0 r1
 		swi 0x1
-		pop r0
 
-		add r0 r3
+		add r3 r1
 
-		cmp r1 r2
-		bne putsloop
-
+	b putsloop
+	putsend:
+		
 	mov r0 10
 	swi 0x1
 

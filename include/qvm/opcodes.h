@@ -47,7 +47,11 @@ enum {
 	OPCODE_R(MUL),
 	OPCODE_R(DIV),
 
-	SWI
+	SWI,
+
+	OPCODE_R(OR),
+	OPCODE_R(XOR),
+	OPCODE_R(AND)
 };
 
 #undef OPCODE_R

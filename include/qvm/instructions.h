@@ -23,3 +23,7 @@ void vm_bl(VM *vm, dword dest);
 void vm_bg(VM *vm, dword dest);
 void vm_ble(VM *vm, dword dest);
 void vm_bge(VM *vm, dword dest);
+
+void vm_or(VM *vm, dword *dest, dword *source);
+void vm_xor(VM *vm, dword *dest, dword *source);
+void vm_and(VM *vm, dword *dest, dword *source);

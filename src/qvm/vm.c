@@ -286,6 +286,21 @@ void vm_do_instruction(VM *vm) {
 		vm_get_forward(vm, &bytes, 2);
 		vm_swi(vm, bytes[1]);
 		free(bytes);
+	} else if (first_byte >= OR_R0 && first_byte <= OR_IP) {
+		vm_get_forward(vm, &bytes, 2);
+
+		vm_or(vm, vm_get_register_from_index(vm, bytes[0] - OR_R0), vm_get_register_from_index(vm, bytes[1]));
+		free(bytes);
+	} else if (first_byte >= XOR_R0 && first_byte <= XOR_IP) {
+		vm_get_forward(vm, &bytes, 2);
+
+		vm_xor(vm, vm_get_register_from_index(vm, bytes[0] - XOR_R0), vm_get_register_from_index(vm, bytes[1]));
+		free(bytes);
+	} else if (first_byte >= AND_R0 && first_byte <= AND_IP) {
+		vm_get_forward(vm, &bytes, 2);
+
+		vm_and(vm, vm_get_register_from_index(vm, bytes[0] - AND_R0), vm_get_register_from_index(vm, bytes[1]));
+		free(bytes);
 	} else {
 		printf("[qvm] illegal instruction\n");
 		vm->regs.ip = 0xffffffff;

@@ -109,6 +109,8 @@ void vm_swi(VM *vm, byte index) {
 	}
 }
 
+/* call instructions */
+
 void vm_call(VM *vm, dword *dest) {
 	vm_pushi(vm, vm->regs.ip);
 	vm->regs.ip = *dest;
@@ -118,6 +120,8 @@ void vm_calli(VM *vm, dword dest) {
 	vm_pushi(vm, vm->regs.ip);
 	vm->regs.ip = dest;
 }
+
+/* branch instructions */
 
 void vm_be(VM *vm, dword dest) {
 	if (vm->flags.ZF == 1) {
@@ -147,4 +151,17 @@ void vm_bge(VM *vm, dword dest) {
 	if (vm->flags.CF == 0 || vm->flags.ZF == 1) {
 		vm->regs.ip = dest;
 	}
+}
+
+/* logical operators */
+void vm_or(VM *vm, dword *dest, dword *source) {
+	*dest |= *source;
+}
+
+void vm_xor(VM *vm, dword *dest, dword *source) {
+	*dest ^= *source;
+}
+
+void vm_and(VM *vm, dword *dest, dword *source) {
+	*dest &= *source;
 }
