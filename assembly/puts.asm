@@ -23,12 +23,19 @@ puts:
 
 	b putsloop
 	putsend:
-		
-	mov r0 10
-	swi 0x1
 
 	pop r3
 	pop r2	
 	pop r1
 	pop r0
+	pop ip
+
+putsn:
+	call puts
+		
+	push r0
+	mov r0 10
+	swi 0x1
+	pop r0
+
 	pop ip

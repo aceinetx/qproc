@@ -101,11 +101,15 @@ void vm_swi(VM *vm, byte index) {
 	case INT_GETC:
 		vm->regs.r0 = getchar();
 		break;
+	case INT_GETS:
+		fgets((char *)&vm->memory[vm->regs.r0], vm->regs.r1, stdin);
+		break;
 	default:
 		/* assume it's a call to software interrupt table */
 		swi_table_dest = fromQendian(&vm->memory[SWI_TABLE + (index * sizeof(dword))]);
 
 		vm_calli(vm, swi_table_dest);
+		break;
 	}
 }
 

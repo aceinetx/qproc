@@ -13,7 +13,9 @@ typedef uint32_t dword;
 #define GiB(times) (MiB(times) * 1024)
 
 #define MEMORY_SIZE KiB(16)
+
 #define SWI_TABLE 0x10000
+#define SCHEDULER 0x11000
 
 /* Indicator for functions: the calle should take ownership of the return value and free it when not needed anymore */
 #define CALLEOWNS

@@ -9,7 +9,7 @@
 enum { SS_DWORD, SS_WORD, SS_BYTE };
 
 /* interrupts */
-enum { INT_PUTC = 1, INT_GETC };
+enum { INT_PUTC = 1, INT_GETC, INT_GETS };
 
 enum {
 	OPCODE_R(MOV),
