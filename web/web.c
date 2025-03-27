@@ -28,6 +28,10 @@ char *assemble(char *src) {
 	lexer->code = src;
 	lexer->code_len = strlen(src);
 
+	memset(sources_store, 0, sizeof(sources_store));
+	sources_store[0].name = "(js)";
+	sources_store[0].start_line = 0;
+
 	assembler_assemble(assembler);
 
 	return assembler->no_fd_buf;

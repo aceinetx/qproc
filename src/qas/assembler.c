@@ -7,6 +7,8 @@
 
 const dword LABELS_MAX = 128;
 
+Source sources_store[SOURCES_MAX];
+
 Assembler *assembler_new(FILE *out, Lexer *lexer) {
 	Assembler *assembler = malloc(sizeof(Assembler));
 
@@ -97,8 +99,10 @@ byte get_register_index_from_name(char *name) {
 }
 
 void assembler_error(Assembler *this, Token *token, const char *msg) {
-	char *filename = NULL;
+	char *filename = "(unknown source)";
 	dword i, line;
+
+	line = token->line;
 
 	for (i = 0; i < sizeof(sources_store) / sizeof(sources_store[0]); i++) {
 		Source *source = &sources_store[i];

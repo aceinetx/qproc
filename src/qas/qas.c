@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <util.h>
 
-Source sources_store[SOURCES_MAX];
-
 int main(int argc, char **argv) {
 	char *sources[SOURCES_MAX], *output_filename, *buf;
 	dword total_size;
@@ -115,8 +113,6 @@ int main(int argc, char **argv) {
 	buf = realloc(buf, total_size + 5);
 	memcpy(buf + total_size, "\0\0\0\0\0", 5);
 	total_size += 5;
-
-	printf("%s\n", buf);
 
 	if (buf) {
 		FILE *out;
