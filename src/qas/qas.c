@@ -125,6 +125,7 @@ int main(int argc, char **argv) {
 		assembler = assembler_new(out, lexer);
 
 		assembler_assemble(assembler);
+		printf("[qas] %d bytes assembled\n", assembler->bytes_assembled);
 
 		assembler_delete(assembler);
 		lexer_delete(lexer);

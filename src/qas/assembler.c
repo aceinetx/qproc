@@ -18,6 +18,7 @@ Assembler *assembler_new(FILE *out, Lexer *lexer) {
 	assembler->no_fd_buf_p = assembler->no_fd_buf;
 	assembler->lexer = lexer;
 	assembler->labels = malloc(sizeof(Label) * LABELS_MAX);
+	assembler->bytes_assembled = 0;
 	memset(assembler->labels, 0, sizeof(Label) * LABELS_MAX);
 
 	return assembler;
