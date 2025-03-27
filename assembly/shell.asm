@@ -6,6 +6,8 @@ shell:
 	call putsn
 
 	shell_loop:
+		sub r11 r11
+
 		mov r0 arrow_s
 		call puts
 
@@ -16,16 +18,38 @@ shell:
 
 		mov r12 r0
 
+		; exit
+		mov r0 r12
 		mov r1 exit_s
 		call strcmp
-		sub r1 r1
-		cmp r0 r1
+		cmp r0 r11
 		be shell_ret
+
+		; restart
+		mov r0 r12
+		mov r1 restart_s
+		call strcmp
+		cmp r0 r11
+		be shell_restart
+
+		; qdb
+		mov r0 r12
+		mov r1 qdb_s
+		call strcmp
+		cmp r0 r11
+		be shell_qdb
 
 		mov r0 r12
 		call putsn
 
 	b shell_loop
+
+shell_qdb:
+	qdb
+	b shell_loop
+
+shell_restart:
+	call restart
 
 shell_ret:
 

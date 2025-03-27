@@ -1,0 +1,2 @@
+restart:
+	b 0x0

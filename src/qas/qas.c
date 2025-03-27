@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
 	char *sources[SOURCES_MAX], *output_filename, *buf;
 	dword total_size;
 	unsigned int i;
+	bool glued;
 
 	buf = NULL;
 
@@ -34,10 +35,13 @@ int main(int argc, char **argv) {
 			printf("Options:\n");
 			printf("  --help        output this message\n");
 			printf("  -o            set output filename\n");
+			printf("  --glued       print glued together sources\n");
 			return 0;
 		}
 		if (strcmp(arg, "-o") == 0) {
 			output_filename = args_shift(&argc, &argv);
+		} else if (strcmp(arg, "--glued") == 0) {
+			glued = true;
 		} else if (i != 0) {
 			size_t i;
 
@@ -105,14 +109,16 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	/* Add 5 newlines at the end */
-	buf = realloc(buf, total_size + 5);
-	memcpy(buf + total_size, "\n\n\n\n\n", 5);
-	total_size += 5;
-	/* And 5 NULL bytes */
-	buf = realloc(buf, total_size + 5);
-	memcpy(buf + total_size, "\0\0\0\0\0", 5);
-	total_size += 5;
+	/* Add 10 NULL bytes */
+	buf = realloc(buf, total_size + 10);
+	memcpy(buf + total_size, "\0\0\0\0\0\0\0\0\0\0", 10);
+	total_size += 10;
+
+	if (glued) {
+		printf("%s\n", buf);
+		free(buf);
+		return 0;
+	}
 
 	if (buf) {
 		FILE *out;
