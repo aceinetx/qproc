@@ -33,7 +33,3 @@ shell_ret:
 	pop bp
 
 	pop ip
-
-shell_msg: #byte "QOS Shell"
-arrow_s: #byte 62 #byte 0x20 #byte 0
-exit_s: #byte "exit"

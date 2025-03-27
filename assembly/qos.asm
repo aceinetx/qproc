@@ -5,7 +5,7 @@ bootloader_main:
 	push bp
 	mov bp sp
 
-	mov r0 msg
+	mov r0 qos_boot_msg
 	call putsn
 
 	call setup_syscalls
@@ -17,5 +17,4 @@ bootloader_main:
 
 	pop ip
 
-msg: #byte "QOS"
 
