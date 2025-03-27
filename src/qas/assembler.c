@@ -107,6 +107,7 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 		for (i = 0; i < 4; i++) {
 			assembler_outb(this, bytes[i]);
 		}
+		free(bytes);
 		return true;
 	} else if (token->type == T_IDENTIFIER) {
 		Label *label = assembler_get_label(this, token->value_s);
@@ -119,6 +120,7 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 		for (i = 0; i < 4; i++) {
 			assembler_outb(this, bytes[i]);
 		}
+		free(bytes);
 		return true;
 	}
 
