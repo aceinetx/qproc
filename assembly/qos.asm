@@ -1,3 +1,5 @@
+mov r0 sp_orig
+str dword r0 sp
 call bootloader_main
 hlt
 
