@@ -1,12 +1,15 @@
 #include <as_lexer.h>
 #include <assembler.h>
+#include <qas.h>
 #include <qvm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <util.h>
 
+Source sources_store[SOURCES_MAX];
+
 int main(int argc, char **argv) {
-	char *sources[64], *output_filename, *buf;
+	char *sources[SOURCES_MAX], *output_filename, *buf;
 	dword total_size;
 	unsigned int i;
 
@@ -18,6 +21,8 @@ int main(int argc, char **argv) {
 	}
 
 	memset(sources, 0, sizeof(sources));
+	memset(sources_store, 0, sizeof(sources_store));
+
 	output_filename = "a.out";
 
 	for (i = 0; argc; ++i) {
@@ -61,16 +66,37 @@ int main(int argc, char **argv) {
 	printf("\n[qas] output: %s\n", output_filename);
 
 	{
+		dword line;
+
+		line = 0;
 		total_size = 0;
 		/* Read all inputs */
 		for (i = 0; i < sizeof(sources) / sizeof(sources[0]); i++) {
 			dword filesize;
-			char *f_buf;
+			char *f_buf, *c;
 			if (sources[i] == NULL)
 				continue;
 
+			for (i = 0; i < sizeof(sources_store) / sizeof(sources_store[0]); i++) {
+				Source *source = &sources_store[i];
+				if (source->name)
+					continue;
+
+				source->name = sources[i];
+				source->start_line = line;
+				break;
+			}
+
 			f_buf = (char *)fs_read(sources[i], &filesize);
+			c = f_buf;
+
 			if (filesize > 0) {
+				while (*c) {
+					if (*c == '\n')
+						line++;
+					c++;
+				}
+
 				buf = realloc(buf, total_size + filesize);
 
 				memcpy(buf + total_size, f_buf, filesize);
@@ -89,6 +115,8 @@ int main(int argc, char **argv) {
 	buf = realloc(buf, total_size + 5);
 	memcpy(buf + total_size, "\0\0\0\0\0", 5);
 	total_size += 5;
+
+	printf("%s\n", buf);
 
 	if (buf) {
 		FILE *out;

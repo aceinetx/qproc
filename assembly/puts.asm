@@ -12,7 +12,7 @@ puts:
 
 		push r0
 		mov r0 r1
-		swi 1
+		swi 0x1
 		pop r0
 
 		add r0 r3

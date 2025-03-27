@@ -7,8 +7,6 @@ bootloader_main:
 
 	call setup_syscalls
 
-	swi 0x80
-
 	pop ip
 
 msg: #byte "QOS"
