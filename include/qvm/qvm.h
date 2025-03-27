@@ -20,6 +20,10 @@ typedef uint32_t dword;
 
 #define SWI_TABLE 0x10000
 #define SCHEDULER 0x11000
+#define SCHEDULER_TIMEOUT SCHEDULER
+#define SCHEDULER_FUNCTION (SCHEDULER + 0x4)
+
+enum { CR_SCHEDULER = 1 };
 
 /* Indicator for functions: the calle should take ownership of the return value and free it when not needed anymore */
 #define CALLEOWNS

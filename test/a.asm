@@ -1,41 +1,29 @@
 call main
+mov r9 0x1
+mov r10 0x2
+mov r11 0x3
+mov r12 0x4
 hlt
 
-puts:
-	push r0
-	push r1
-	push r2
-	push r3
-
-	sub r2 r2
-	mov r3 1
-
-	puts_loop:
-		lod r1 byte r0
-
-		push r0
-		mov r0 r1
-		swi 1
-		pop r0
-
-		add r0 r3
-
-		cmp r1 r2
-		bne puts_loop
-
-	mov r0 10
-	swi 1
-
-	pop r3
-	pop r2	
-	pop r1
-	pop r0
+scheduler:
+	qdb
+	mov r0 0x11000
+	mov r1 1
+	str dword r0 r1
+	mov r0 1
+	or cr r0
 	pop ip
 
 main:
-	mov r0 hw
-	call puts
+	mov r0 0x11000
+	mov r1 1
+	str dword r0 r1
+
+	mov r0 0x11004
+	mov r1 scheduler
+	str dword r0 r1
+
+	mov r0 1
+	or cr r0
 
 	pop ip
-	 
-hw: #byte "Hello, world!"

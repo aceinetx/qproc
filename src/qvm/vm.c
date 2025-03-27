@@ -1,3 +1,4 @@
+#include "qvm.h"
 #include <instructions.h>
 #include <opcodes.h>
 #include <stdlib.h>
@@ -10,6 +11,8 @@ VM *vm_new(void) {
 	memset(&vm->regs, 0, sizeof(registers));
 	memset(&vm->flags, 0, sizeof(vm->flags));
 
+	vm->scheduler_timeout = (dword)-1;
+	vm->do_dump_memory = false;
 	vm->last_disassembly = malloc(DISASM_STR_SIZE);
 	memset(vm->last_disassembly, 0, DISASM_STR_SIZE);
 
@@ -59,10 +62,12 @@ dword *vm_get_register_from_index(VM *vm, byte index) {
 	case 12:
 		return &vm->regs.r12;
 	case 13:
-		return &vm->regs.sp;
+		return &vm->regs.cr;
 	case 14:
-		return &vm->regs.bp;
+		return &vm->regs.sp;
 	case 15:
+		return &vm->regs.bp;
+	case 16:
 		return &vm->regs.ip;
 	default:
 		return &vm->regs.r0;
@@ -301,9 +306,33 @@ void vm_do_instruction(VM *vm) {
 
 		vm_and(vm, vm_get_register_from_index(vm, bytes[0] - AND_R0), vm_get_register_from_index(vm, bytes[1]));
 		free(bytes);
+	} else if (first_byte >= NOT_R0 && first_byte <= NOT_IP) {
+		vm_not(vm, vm_get_register_from_index(vm, first_byte - AND_R0));
 	} else {
 		printf("[qvm] illegal instruction\n");
 		vm->regs.ip = 0xffffffff;
+	}
+
+	{
+		if ((vm->regs.cr & CR_SCHEDULER) && (first_byte != HLT)) {
+			dword timeout_addr;
+			timeout_addr = SCHEDULER_TIMEOUT;
+
+			if (vm->scheduler_timeout == (dword)-1) {
+				vm_lod(vm, &vm->scheduler_timeout, &timeout_addr, SS_DWORD);
+			} else {
+				if (vm->scheduler_timeout > 0) {
+					vm->scheduler_timeout--;
+				} else {
+					vm->regs.cr &= ~CR_SCHEDULER;
+
+					vm_lod(vm, &vm->scheduler_timeout, &timeout_addr, SS_DWORD);
+					vm_call(vm, (dword *)&vm->memory[SCHEDULER_FUNCTION]);
+				}
+			}
+		} else {
+			vm->scheduler_timeout = (dword)-1;
+		}
 	}
 }
 
@@ -332,4 +361,15 @@ void vm_fprint_state(VM *vm, FILE *fd) {
 	fprintf(fd, " BP: 0x%x", vm->regs.bp);
 	fprintf(fd, " IP: 0x%x", vm->regs.ip);
 	fprintf(fd, "\n[qvm] ZF: 0x%x CF: 0x%x\n", vm->flags.ZF, vm->flags.CF);
+
+	if (vm->do_dump_memory) {
+		FILE *dump_fd;
+		dword i;
+
+		dump_fd = fopen("dump.bin", "wb");
+
+		for (i = 0; i < MEMORY_SIZE; i++) {
+			fputc(vm->memory[i], dump_fd);
+		}
+	}
 }

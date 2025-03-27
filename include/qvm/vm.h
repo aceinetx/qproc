@@ -1,6 +1,7 @@
 #pragma once
 #include <qvm.h>
 #include <registers.h>
+#include <stdbool.h>
 #include <stdio.h>
 #define DISASM_STR_SIZE 255
 
@@ -12,6 +13,8 @@ typedef struct {
 		byte CF;
 		byte ZF;
 	} flags;
+	dword scheduler_timeout;
+	bool do_dump_memory;
 } VM;
 
 VM *vm_new(void);

@@ -89,12 +89,14 @@ byte get_register_index_from_name(char *name) {
 		return 11;
 	} else if (strcmp(name, "r12") == 0) {
 		return 12;
-	} else if (strcmp(name, "sp") == 0) {
+	} else if (strcmp(name, "cr") == 0) {
 		return 13;
-	} else if (strcmp(name, "bp") == 0) {
+	} else if (strcmp(name, "sp") == 0) {
 		return 14;
-	} else if (strcmp(name, "ip") == 0) {
+	} else if (strcmp(name, "bp") == 0) {
 		return 15;
+	} else if (strcmp(name, "ip") == 0) {
+		return 16;
 	}
 	return 0;
 }

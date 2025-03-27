@@ -175,3 +175,7 @@ void vm_xor(VM *vm, dword *dest, dword *source) {
 void vm_and(VM *vm, dword *dest, dword *source) {
 	*dest &= *source;
 }
+
+void vm_not(VM *vm, dword *dest) {
+	*dest = ~(*dest);
+}

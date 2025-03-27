@@ -27,3 +27,4 @@ void vm_bge(VM *vm, dword dest);
 void vm_or(VM *vm, dword *dest, dword *source);
 void vm_xor(VM *vm, dword *dest, dword *source);
 void vm_and(VM *vm, dword *dest, dword *source);
+void vm_not(VM *vm, dword *dest);

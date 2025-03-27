@@ -141,6 +141,8 @@ Token lexer_identifier(Lexer *lexer) {
 
 	if (tok.value_s[0] == 'r' && len >= 2 && len <= 3) {
 		tok.type = T_REGISTER;
+	} else if (strcmp(tok.value_s, "cr") == 0) {
+		tok.type = T_REGISTER;
 	} else if (strcmp(tok.value_s, "sp") == 0) {
 		tok.type = T_REGISTER;
 	} else if (strcmp(tok.value_s, "bp") == 0) {
