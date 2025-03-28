@@ -11,6 +11,7 @@ shell:
 		mov r0 arrow_s
 		call puts
 
+		; get input
 		mov r1 64
 		mov r0 bp
 		sub r0 r1
@@ -52,7 +53,6 @@ shell_restart:
 	call restart
 
 shell_ret:
-
 	mov sp bp
 	pop bp
 
