@@ -2,4 +2,4 @@
 a pseudo processor
 
 > [!NOTE]  
-> QAS & QVM are now available in reposx! ```reposx install qas``` ```reposx install qvm```
+> qproc is now available in reposx! ```reposx install qproc```
