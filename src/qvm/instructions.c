@@ -3,6 +3,7 @@
 #include <opcodes.h>
 #include <qvm.h>
 #include <stdlib.h>
+#include <string.h>
 #include <vm.h>
 
 void vm_mov(VM *vm, dword *dest, dword *src) {
