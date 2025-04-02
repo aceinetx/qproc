@@ -36,6 +36,7 @@ jobs:
           mv qos.bin ..
           cd ..
           tar -czvf programs.tar.gz helloworld.bin qos.bin
+          tar -czvf qproc.tar.gz qvm-x86_64 qas-x86_64
       
       - name: Upload artifact (programs)
         uses: actions/upload-artifact@v4
@@ -54,6 +55,12 @@ jobs:
         with:
           name: qas-x86_64
           path: qas-x86_64
+      
+      - name: Upload artifact (qproc)
+        uses: actions/upload-artifact@v4
+        with:
+          name: qproc
+          path: qproc.tar.gz
 
   publish:
     name: Publish
@@ -79,6 +86,11 @@ jobs:
         with:
           name: qas-x86_64
 
+      - name: Download artifact (qproc)
+        uses: actions/download-artifact@v4
+        with:
+          name: qproc
+
       - name: Update Nightly Release
         uses: andelf/nightly-release@main
         env:
@@ -92,3 +104,4 @@ jobs:
             ./programs.tar.gz
             ./qvm-x86_64
             ./qas-x86_64
+            ./qproc.tar.gz
