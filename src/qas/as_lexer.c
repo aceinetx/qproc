@@ -2,6 +2,7 @@
 #include <opcodes.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 Token token_new(void) {
 	Token tok;
