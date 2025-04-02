@@ -2,6 +2,7 @@
 #include <instructions.h>
 #include <opcodes.h>
 #include <stdlib.h>
+#include <string.h>
 #include <vm.h>
 
 VM *vm_new(void) {
