@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <util.h>
 
 const dword LABELS_MAX = 128;
 
@@ -162,9 +163,9 @@ void assembler_assemble(Assembler *this) {
 	for (;;) {
 		token = lexer_next(this->lexer);
 		if (token.type == T_EOF) {
-
 			if (!this->preprocessor)
 				break;
+
 			this->preprocessor = false;
 			this->lexer->pos = 0;
 			this->lexer->line = 1;
@@ -575,6 +576,26 @@ void assembler_assemble(Assembler *this) {
 				} else {
 					assembler_error(this, &op, "invalid argument type for #byte");
 					break;
+				}
+			} else if (strcmp(token.value_s, "#embed") == 0) {
+				op = lexer_next(this->lexer);
+				if (op.type == T_STRING) {
+					dword size, k;
+					byte *buf;
+
+					buf = fs_read(op.value_s, &size);
+					if (buf == NULL) {
+						assembler_error(this, &op, "read failed");
+					}
+
+					for (k = 0; k < size; k++) {
+						assembler_outb(this, buf[k]);
+						this->addr++;
+					}
+
+					free(buf);
+				} else {
+					assembler_error(this, &op, "invalid argument type for #embed");
 				}
 			} else if (strcmp(token.value_s, "#org") == 0) {
 				op = lexer_next(this->lexer);

@@ -1,7 +1,10 @@
 .ONESHELL:
 
 QAS = ../build/qas
-all: a.bin
+all: a.bin quine.bin
+
+quine.bin: $(QAS) quine.asm
+	$(QAS) quine.asm -o quine.bin
 
 a.bin: $(QAS) a.asm
 	$(QAS) a.asm -o a.bin
