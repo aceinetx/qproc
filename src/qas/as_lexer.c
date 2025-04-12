@@ -14,8 +14,8 @@ Token token_new(void) {
 	return tok;
 }
 
-Lexer *lexer_new(char *code) {
-	Lexer *lexer = malloc(sizeof(Lexer));
+Lexer* lexer_new(char* code) {
+	Lexer* lexer = malloc(sizeof(Lexer));
 	lexer->code = code;
 	lexer->pos = 0;
 	lexer->code_len = strlen(lexer->code);
@@ -24,7 +24,7 @@ Lexer *lexer_new(char *code) {
 	return lexer;
 }
 
-void lexer_delete(Lexer *lexer) {
+void lexer_delete(Lexer* lexer) {
 	free(lexer);
 }
 
@@ -44,7 +44,7 @@ bool is_symbol(char c) {
 	return (c == '.' || c == ',' || c == '!' || c == ' ');
 }
 
-Token lexer_number(Lexer *lexer) {
+Token lexer_number(Lexer* lexer) {
 	Token tok;
 	bool is_hex;
 
@@ -115,7 +115,7 @@ Token lexer_number(Lexer *lexer) {
 	return tok;
 }
 
-Token lexer_identifier(Lexer *lexer) {
+Token lexer_identifier(Lexer* lexer) {
 	Token tok;
 	size_t len;
 
@@ -164,7 +164,7 @@ Token lexer_identifier(Lexer *lexer) {
 	return tok;
 }
 
-Token lexer_directive(Lexer *lexer) {
+Token lexer_directive(Lexer* lexer) {
 	Token tok;
 	size_t len;
 
@@ -189,7 +189,7 @@ Token lexer_directive(Lexer *lexer) {
 	return tok;
 }
 
-Token lexer_string(Lexer *lexer) {
+Token lexer_string(Lexer* lexer) {
 	Token tok;
 	size_t len;
 	bool definition;
@@ -227,7 +227,7 @@ Token lexer_string(Lexer *lexer) {
 	return tok;
 }
 
-Token lexer_next(Lexer *lexer) {
+Token lexer_next(Lexer* lexer) {
 	Token tok;
 	bool in_comment = false;
 	while (lexer->pos < lexer->code_len) {

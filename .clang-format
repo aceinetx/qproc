@@ -19,3 +19,5 @@ SpacesInSquareBrackets: false
 SpaceBeforeSquareBrackets: false
 SpaceAfterTemplateKeyword: true
 ColumnLimit: 256
+DerivePointerAlignment: false
+PointerAlignment: Left

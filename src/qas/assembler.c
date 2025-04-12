@@ -11,8 +11,8 @@ const dword LABELS_MAX = 128;
 
 Source sources_store[SOURCES_MAX];
 
-Assembler *assembler_new(FILE *out, Lexer *lexer) {
-	Assembler *assembler = malloc(sizeof(Assembler));
+Assembler* assembler_new(FILE* out, Lexer* lexer) {
+	Assembler* assembler = malloc(sizeof(Assembler));
 
 	assembler->out = out;
 	memset(assembler->logs, 0, sizeof(assembler->logs));
@@ -26,7 +26,7 @@ Assembler *assembler_new(FILE *out, Lexer *lexer) {
 	return assembler;
 }
 
-Label *assembler_get_label(Assembler *this, char *name) {
+Label* assembler_get_label(Assembler* this, char* name) {
 	int i;
 	for (i = 0;; i++) {
 		if (this->labels[i].name[0] == '\0') {
@@ -40,7 +40,7 @@ Label *assembler_get_label(Assembler *this, char *name) {
 	return NULL;
 }
 
-void assembler_add_label(Assembler *this, Label label) {
+void assembler_add_label(Assembler* this, Label label) {
 	int i;
 	for (i = 0;; i++) {
 		if (this->labels[i].name[0] == '\0') {
@@ -50,7 +50,7 @@ void assembler_add_label(Assembler *this, Label label) {
 	}
 }
 
-void assembler_outb(Assembler *this, byte b) {
+void assembler_outb(Assembler* this, byte b) {
 	if (this->preprocessor)
 		return;
 	this->bytes_assembled++;
@@ -64,7 +64,7 @@ void assembler_outb(Assembler *this, byte b) {
 	}
 }
 
-byte get_register_index_from_name(char *name) {
+byte get_register_index_from_name(char* name) {
 	if (strcmp(name, "r0") == 0) {
 		return 0;
 	} else if (strcmp(name, "r1") == 0) {
@@ -103,14 +103,14 @@ byte get_register_index_from_name(char *name) {
 	return 0;
 }
 
-void assembler_error(Assembler *this, Token *token, const char *msg) {
-	char *filename = "(unknown source)";
+void assembler_error(Assembler* this, Token* token, const char* msg) {
+	char* filename = "(unknown source)";
 	dword i, line;
 
 	line = token->line;
 
 	for (i = 0; i < sizeof(sources_store) / sizeof(sources_store[0]); i++) {
-		Source *source = &sources_store[i];
+		Source* source = &sources_store[i];
 		if (!source->name)
 			continue;
 
@@ -123,9 +123,9 @@ void assembler_error(Assembler *this, Token *token, const char *msg) {
 	snprintf(this->logs, sizeof(this->logs), "[qas] [%s: %d]: %s\n", filename, line, msg);
 }
 
-bool assembler_do_const_operand(Assembler *this, Token *token) {
+bool assembler_do_const_operand(Assembler* this, Token* token) {
 	int i;
-	byte *bytes;
+	byte* bytes;
 
 	if (this->preprocessor)
 		return true;
@@ -138,7 +138,7 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 		free(bytes);
 		return true;
 	} else if (token->type == T_IDENTIFIER) {
-		Label *label = assembler_get_label(this, token->value_s);
+		Label* label = assembler_get_label(this, token->value_s);
 		if (!label) {
 			assembler_error(this, token, "undefined label");
 			return false;
@@ -155,7 +155,7 @@ bool assembler_do_const_operand(Assembler *this, Token *token) {
 	return false;
 }
 
-void assembler_assemble(Assembler *this) {
+void assembler_assemble(Assembler* this) {
 	Token token, left, right, op, dest, src, size;
 
 	this->preprocessor = true;
@@ -562,7 +562,7 @@ void assembler_assemble(Assembler *this) {
 			if (strcmp(token.value_s, "#byte") == 0) {
 				op = lexer_next(this->lexer);
 				if (op.type == T_STRING) {
-					char *c = op.value_s;
+					char* c = op.value_s;
 					while (*c != 0) {
 						assembler_outb(this, *c);
 						this->addr += 0x1;
@@ -581,7 +581,7 @@ void assembler_assemble(Assembler *this) {
 				op = lexer_next(this->lexer);
 				if (op.type == T_STRING) {
 					dword size, k;
-					byte *buf;
+					byte* buf;
 
 					buf = fs_read(op.value_s, &size);
 					if (buf == NULL) {
@@ -616,7 +616,7 @@ void assembler_assemble(Assembler *this) {
 	}
 }
 
-void assembler_delete(Assembler *this) {
+void assembler_delete(Assembler* this) {
 	free(this->labels);
 	free(this);
 }

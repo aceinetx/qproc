@@ -6,11 +6,11 @@
 #include <util.h>
 #include <vm.h>
 
-int main(int argc, char **argv) {
-	char *filename;
+int main(int argc, char** argv) {
+	char* filename;
 	unsigned int i;
 	dword size;
-	byte *buf;
+	byte* buf;
 	bool do_dump_memory;
 
 	if (sizeof(dword) != 4) {
@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
 	filename = NULL;
 
 	for (i = 0; argc; ++i) {
-		char *arg;
+		char* arg;
 		(void)i;
 
 		arg = args_shift(&argc, &argv);
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 
 	buf = fs_read(filename, &size);
 	if (buf) {
-		VM *vm;
+		VM* vm;
 
 		vm = vm_new();
 		vm->do_dump_memory = do_dump_memory;

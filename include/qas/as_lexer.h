@@ -14,11 +14,11 @@ typedef struct {
 
 typedef struct {
 	dword pos;
-	char *code;
+	char* code;
 	dword code_len;
 	dword line;
 } Lexer;
 
-Lexer *lexer_new(char *code);
-void lexer_delete(Lexer *lexer);
-Token lexer_next(Lexer *lexer);
+Lexer* lexer_new(char* code);
+void lexer_delete(Lexer* lexer);
+Token lexer_next(Lexer* lexer);

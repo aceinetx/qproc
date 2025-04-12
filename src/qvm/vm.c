@@ -5,8 +5,8 @@
 #include <string.h>
 #include <vm.h>
 
-VM *vm_new(void) {
-	VM *vm = malloc(sizeof(VM));
+VM* vm_new(void) {
+	VM* vm = malloc(sizeof(VM));
 	vm->memory = malloc(MEMORY_SIZE);
 	memset(vm->memory, 0, MEMORY_SIZE);
 	memset(&vm->regs, 0, sizeof(registers));
@@ -26,7 +26,7 @@ VM *vm_new(void) {
 	return vm;
 }
 
-void vm_delete(VM *vm) {
+void vm_delete(VM* vm) {
 	free(vm->memory);
 	free(vm->last_disassembly);
 	free(vm);
@@ -34,7 +34,7 @@ void vm_delete(VM *vm) {
 	printf("[qvm] VM delete\n");
 }
 
-dword *vm_get_register_from_index(VM *vm, byte index) {
+dword* vm_get_register_from_index(VM* vm, byte index) {
 	switch (index) {
 	case 0:
 		return &vm->regs.r0;
@@ -76,8 +76,8 @@ dword *vm_get_register_from_index(VM *vm, byte index) {
 	return &vm->regs.r0;
 }
 
-CALLEOWNS char *vm_get_regname_from_index(VM *vm, byte index) {
-	char *buf = malloc(4);
+CALLEOWNS char* vm_get_regname_from_index(VM* vm, byte index) {
+	char* buf = malloc(4);
 	switch (index) {
 	case 0:
 		strncpy(buf, "r0", 3);
@@ -134,7 +134,7 @@ CALLEOWNS char *vm_get_regname_from_index(VM *vm, byte index) {
 	return buf;
 }
 
-void vm_get_forward(VM *vm, byte **buf, byte n) {
+void vm_get_forward(VM* vm, byte** buf, byte n) {
 	dword start;
 
 	*buf = malloc(n);
@@ -146,8 +146,8 @@ void vm_get_forward(VM *vm, byte **buf, byte n) {
 	}
 }
 
-void vm_do_instruction(VM *vm) {
-	byte *bytes;
+void vm_do_instruction(VM* vm) {
+	byte* bytes;
 
 	byte first_byte = vm->memory[vm->regs.ip];
 	if (first_byte >= MOV_R0 && first_byte <= MOV_IP) {
@@ -165,7 +165,7 @@ void vm_do_instruction(VM *vm) {
 
 		free(bytes);
 	} else if (first_byte >= MOVI_R0 && first_byte <= MOVI_IP) {
-		char *a;
+		char* a;
 		dword b;
 
 		vm_get_forward(vm, &bytes, 5);
@@ -328,7 +328,7 @@ void vm_do_instruction(VM *vm) {
 					vm->regs.cr &= ~CR_SCHEDULER;
 
 					vm_lod(vm, &vm->scheduler_timeout, &timeout_addr, SS_DWORD);
-					vm_call(vm, (dword *)&vm->memory[SCHEDULER_FUNCTION]);
+					vm_call(vm, (dword*)&vm->memory[SCHEDULER_FUNCTION]);
 				}
 			}
 		} else {
@@ -337,13 +337,13 @@ void vm_do_instruction(VM *vm) {
 	}
 }
 
-void vm_run(VM *vm) {
+void vm_run(VM* vm) {
 	while (vm->regs.ip < MEMORY_SIZE) {
 		vm_do_instruction(vm);
 	}
 }
 
-void vm_fprint_state(VM *vm, FILE *fd) {
+void vm_fprint_state(VM* vm, FILE* fd) {
 	fprintf(fd, "[qvm] VM state:\n");
 	fprintf(fd, "[qvm] R0: 0x%x", vm->regs.r0);
 	fprintf(fd, " R1: 0x%x", vm->regs.r1);
@@ -364,7 +364,7 @@ void vm_fprint_state(VM *vm, FILE *fd) {
 	fprintf(fd, "\n[qvm] ZF: 0x%x CF: 0x%x\n", vm->flags.ZF, vm->flags.CF);
 
 	if (vm->do_dump_memory) {
-		FILE *dump_fd;
+		FILE* dump_fd;
 		dword i;
 
 		dump_fd = fopen("dump.bin", "wb");

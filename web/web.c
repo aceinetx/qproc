@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-Assembler *assembler;
-Lexer *lexer;
+Assembler* assembler;
+Lexer* lexer;
 
 EMSCRIPTEN_KEEPALIVE
 void all_create() {
@@ -21,7 +21,7 @@ void all_destroy() {
 }
 
 EMSCRIPTEN_KEEPALIVE
-char *assemble(char *src) {
+char* assemble(char* src) {
 	assembler->bytes_assembled = 0;
 	assembler->addr = 0;
 	lexer->pos = 0;
@@ -43,7 +43,7 @@ int get_assembled_bytes() {
 }
 
 EMSCRIPTEN_KEEPALIVE
-char *get_assembler_logs() {
+char* get_assembler_logs() {
 	return assembler->logs;
 }
 

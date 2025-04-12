@@ -3,16 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char *args_shift(int *argc, char ***argv) {
+char* args_shift(int* argc, char*** argv) {
 	assert(*argc > 0 && "argc <= 0");
 	--(*argc);
 	return *(*argv)++;
 }
 
-byte *fs_read(const char *filename, dword *outSize) {
-	FILE *file;
+byte* fs_read(const char* filename, dword* outSize) {
+	FILE* file;
 	long fileSize;
-	byte *buffer;
+	byte* buffer;
 	dword bytesRead;
 
 	file = fopen(filename, "rb");
@@ -29,7 +29,7 @@ byte *fs_read(const char *filename, dword *outSize) {
 		return NULL;
 	}
 
-	buffer = (byte *)malloc(fileSize);
+	buffer = (byte*)malloc(fileSize);
 	if (!buffer) {
 		fclose(file);
 		return NULL;

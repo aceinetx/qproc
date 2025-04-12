@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-dword fromQendian(byte *bytes) {
+dword fromQendian(byte* bytes) {
 	dword value, i;
 	value = 0;
 
@@ -12,8 +12,8 @@ dword fromQendian(byte *bytes) {
 	return value;
 }
 
-CALLEOWNS byte *toQendian(dword n) {
-	byte *bytes;
+CALLEOWNS byte* toQendian(dword n) {
+	byte* bytes;
 	dword i;
 
 	bytes = malloc(4);
@@ -23,7 +23,7 @@ CALLEOWNS byte *toQendian(dword n) {
 	return bytes;
 }
 
-void ftoQendian(FILE *fd, dword n) {
+void ftoQendian(FILE* fd, dword n) {
 	size_t i;
 	for (i = 0; i < 4; ++i) {
 		fprintf(fd, "%c", (n >> (i * 8)) & 0xFF);

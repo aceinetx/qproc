@@ -7,7 +7,7 @@
 #include <string.h>
 #include <util.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 	char *sources[SOURCES_MAX], *output_filename, *buf;
 	dword total_size;
 	unsigned int i;
@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 	glued = false;
 
 	for (i = 0; argc; ++i) {
-		char *arg;
+		char* arg;
 		(void)i;
 
 		arg = args_shift(&argc, &argv);
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 				continue;
 
 			for (i = 0; i < sizeof(sources_store) / sizeof(sources_store[0]); i++) {
-				Source *source = &sources_store[i];
+				Source* source = &sources_store[i];
 				if (source->name)
 					continue;
 
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 				break;
 			}
 
-			f_buf = (char *)fs_read(sources[i], &filesize);
+			f_buf = (char*)fs_read(sources[i], &filesize);
 			c = f_buf;
 
 			if (filesize > 0) {
@@ -123,13 +123,13 @@ int main(int argc, char **argv) {
 	}
 
 	if (buf) {
-		FILE *out;
-		Lexer *lexer;
-		Assembler *assembler;
+		FILE* out;
+		Lexer* lexer;
+		Assembler* assembler;
 
 		out = fopen(output_filename, "w");
 
-		lexer = lexer_new((char *)buf);
+		lexer = lexer_new((char*)buf);
 		assembler = assembler_new(out, lexer);
 
 		assembler_assemble(assembler);
