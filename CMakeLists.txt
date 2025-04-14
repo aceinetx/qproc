@@ -8,7 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 file(GLOB_RECURSE QVM_SOURCES CONFIGURE_DEPENDS "src/qvm/*.c")
 file(GLOB_RECURSE QAS_SOURCES CONFIGURE_DEPENDS "src/qas/*.c")
 file(GLOB_RECURSE QCC_SOURCES CONFIGURE_DEPENDS "src/qcc/*.c")
-set(SOURCES "src/util.c")
+set(SOURCES "src/util.c" "src/arena.c")
 
 if(LINUX)
 	add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-type-limits)

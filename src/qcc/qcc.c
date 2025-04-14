@@ -131,6 +131,14 @@ int main(int argc, char** argv) {
 
 		lexer = cclexer_new(buf);
 
+		{
+			CCToken token = cclexer_next(lexer);
+			while (token.type != CCT_EOF) {
+				printf("%d %s %d %c\n", token.type, token.value_s, token.value_i, token.value_c);
+				token = cclexer_next(lexer);
+			}
+		}
+
 		cclexer_delete(lexer);
 
 		fclose(out);
