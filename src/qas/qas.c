@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 	buf = NULL;
 
 	if (sizeof(dword) != 4) {
-		printf("[qvm] FATAL: sizeof(dword) != 4, cannot continue\n");
+		printf("[qas] FATAL: sizeof(dword) != 4, cannot continue\n");
 		return EXIT_FAILURE;
 	}
 
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
 		fclose(out);
 		free(buf);
 	} else {
-		printf("[qvm] failed to read a file\n");
+		printf("[qas] failed to read a file\n");
 		return EXIT_FAILURE;
 	}
 	return 0;
