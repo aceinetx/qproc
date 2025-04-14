@@ -1,6 +1,5 @@
 #include <as_lexer.h>
 #include <opcodes.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 

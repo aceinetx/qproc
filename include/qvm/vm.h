@@ -1,7 +1,6 @@
 #pragma once
 #include <qvm.h>
 #include <registers.h>
-#include <stdbool.h>
 #include <stdio.h>
 #define DISASM_STR_SIZE 255
 

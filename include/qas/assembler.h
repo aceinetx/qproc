@@ -1,7 +1,6 @@
 #pragma once
 #include <as_lexer.h>
 #include <qvm.h>
-#include <stdbool.h>
 #include <stdio.h>
 
 #define SOURCES_MAX 64

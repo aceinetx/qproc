@@ -2,7 +2,6 @@
 #include <endian.h>
 #include <opcodes.h>
 #include <qas.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <util.h>

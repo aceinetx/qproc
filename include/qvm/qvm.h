@@ -5,6 +5,11 @@ typedef uint8_t byte;
 typedef uint16_t word;
 typedef uint32_t dword;
 
+#undef bool
+#define bool byte
+#define true ((byte)1)
+#define false ((byte)0)
+
 #define KiB(times) (times * 1024)
 #define MiB(times) (KiB(times) * 1024)
 #define GiB(times) (MiB(times) * 1024)
