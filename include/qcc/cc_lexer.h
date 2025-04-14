@@ -10,7 +10,7 @@ typedef struct CCLexer {
 	Arena strings;
 } CCLexer;
 
-typedef enum CCTokenType { CCT_NULL, CCT_EOF, CCT_INTEGER, CCT_STRING, CCT_IDENTIFIER, CCT_LPAREN, CCT_RPAREN, CCT_LSBRACKET, CCT_RSBRACKET, CCT_COMMA, CCT_STAR, CCT_PLUS, CCT_MINUS, CCT_MUL, CCT_DIV, CCT_SETTO } CCTokenType;
+typedef enum CCTokenType { CCT_NULL, CCT_EOF, CCT_INTEGER, CCT_STRING, CCT_IDENTIFIER, CCT_LPAREN, CCT_RPAREN, CCT_LSBRACKET, CCT_RSBRACKET, CCT_COMMA, CCT_PLUS, CCT_MINUS, CCT_MUL, CCT_DIV, CCT_EQUAL, CCT_ADDROF, CCT_SEMICOLON, CCT_RETURN } CCTokenType;
 
 typedef struct CCToken {
 	CCTokenType type;
@@ -23,4 +23,5 @@ typedef struct CCToken {
 CCLexer* cclexer_new(char* code);
 void cclexer_delete(CCLexer* lexer);
 
+CCToken cclexer_peek(CCLexer* lexer);
 CCToken cclexer_next(CCLexer* lexer);

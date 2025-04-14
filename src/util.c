@@ -15,6 +15,10 @@ byte* fs_read(const char* filename, dword* outSize) {
 	byte* buffer;
 	dword bytesRead;
 
+	if (outSize) {
+		*outSize = (dword)-1;
+	}
+
 	file = fopen(filename, "rb");
 	if (!file) {
 		return NULL;

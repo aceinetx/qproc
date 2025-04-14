@@ -188,46 +188,88 @@ CCToken cclexer_string(CCLexer* lexer) {
 	return tok;
 }
 
+CCToken cclexer_peek(CCLexer* lexer) {
+	CCToken token;
+	dword old_pos = lexer->pos;
+	token = cclexer_next(lexer);
+	lexer->pos = old_pos;
+	return token;
+}
+
 CCToken cclexer_next(CCLexer* lexer) {
 	CCToken tok;
-	bool in_comment = false;
 	while (lexer->pos < lexer->code_len) {
 		char c = lexer->code[lexer->pos];
 		CCToken token = cctoken_new();
 
-		if (c == ';') {
-			in_comment = true;
-		}
-
 		if (c == '\n') {
-			in_comment = false;
 			lexer->line++;
 		}
 
-		if (!in_comment) {
-			if (is_digit(c)) {
-				token = cclexer_number(lexer);
-			} else if (is_letter(c)) {
-				token = cclexer_identifier(lexer);
-			} else if (c == '"') {
-				token = cclexer_string(lexer);
-			} else if (c == '(') {
-				token.type = CCT_LPAREN;
-				lexer->pos++;
-			} else if (c == ')') {
+		if (is_digit(c)) {
+			token = cclexer_number(lexer);
+		} else if (is_letter(c)) {
+			token = cclexer_identifier(lexer);
+			if (strcmp(token.value_s, "return") == 0) {
+				token.type = CCT_RETURN;
+			}
+		} else if (c == '"') {
+			token = cclexer_string(lexer);
+		} else {
+			switch (c) {
+			case ')': {
 				token.type = CCT_RPAREN;
 				lexer->pos++;
-			} else if (c == '{') {
-				token.type = CCT_LSBRACKET;
+			} break;
+			case '(': {
+				token.type = CCT_LPAREN;
 				lexer->pos++;
-			} else if (c == '}') {
+			} break;
+			case '}': {
 				token.type = CCT_RSBRACKET;
 				lexer->pos++;
+			} break;
+			case '{': {
+				token.type = CCT_LSBRACKET;
+				lexer->pos++;
+			} break;
+			case '+': {
+				token.type = CCT_PLUS;
+				lexer->pos++;
+			} break;
+			case '-': {
+				token.type = CCT_MINUS;
+				lexer->pos++;
+			} break;
+			case '*': {
+				token.type = CCT_MUL;
+				lexer->pos++;
+			} break;
+			case '/': {
+				token.type = CCT_DIV;
+				lexer->pos++;
+			} break;
+			case '&': {
+				token.type = CCT_ADDROF;
+				lexer->pos++;
+			} break;
+			case ',': {
+				token.type = CCT_COMMA;
+				lexer->pos++;
+			} break;
+			case '=': {
+				token.type = CCT_EQUAL;
+				lexer->pos++;
+			} break;
+			case ';': {
+				token.type = CCT_SEMICOLON;
+				lexer->pos++;
+			} break;
 			}
-
-			if (token.type != CCT_NULL)
-				return token;
 		}
+
+		if (token.type != CCT_NULL)
+			return token;
 
 		lexer->pos++;
 	}

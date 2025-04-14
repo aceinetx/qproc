@@ -1,3 +1,4 @@
+#include <cc_compiler.h>
 #include <cc_lexer.h>
 #include <qcc.h>
 #include <qvm.h>
@@ -95,7 +96,7 @@ int main(int argc, char** argv) {
 			f_buf = (char*)fs_read(sources[i], &filesize);
 			c = f_buf;
 
-			if (filesize > 0) {
+			if (filesize != (dword)-1) {
 				while (*c) {
 					if (*c == '\n')
 						line++;
@@ -126,19 +127,16 @@ int main(int argc, char** argv) {
 	if (buf) {
 		FILE* out;
 		CCLexer* lexer;
+		CCCompiler* compiler;
 
 		out = fopen(output_filename, "w");
 
 		lexer = cclexer_new(buf);
+		compiler = cccompiler_new(lexer, out);
 
-		{
-			CCToken token = cclexer_next(lexer);
-			while (token.type != CCT_EOF) {
-				printf("%d %s %d %c\n", token.type, token.value_s, token.value_i, token.value_c);
-				token = cclexer_next(lexer);
-			}
-		}
+		cccompiler_compile(compiler);
 
+		cccompiler_delete(compiler);
 		cclexer_delete(lexer);
 
 		fclose(out);
