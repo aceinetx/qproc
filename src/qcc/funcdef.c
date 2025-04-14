@@ -1,7 +1,7 @@
 #include <cc_compiler.h>
 
 bool cccompiler_funcdef(CCCompiler* this) {
-	// TODO: implement arguments
+	/* TODO: implement arguments */
 
 	CCToken name = cclexer_next(this->lexer);
 	CCToken excepted_lparen = cclexer_next(this->lexer);
