@@ -1,3 +1,4 @@
+#include <cc_lexer.h>
 #include <qcc.h>
 #include <qvm.h>
 #include <stdio.h>
@@ -124,8 +125,13 @@ int main(int argc, char** argv) {
 
 	if (buf) {
 		FILE* out;
+		CCLexer* lexer;
 
 		out = fopen(output_filename, "w");
+
+		lexer = cclexer_new(buf);
+
+		cclexer_delete(lexer);
 
 		fclose(out);
 		free(buf);
