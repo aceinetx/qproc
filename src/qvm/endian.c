@@ -1,8 +1,7 @@
 #include <qvm.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-dword fromQendian(byte* bytes) {
+dword fromQendian(byte bytes[4]) {
 	dword value, i;
 	value = 0;
 
@@ -12,15 +11,12 @@ dword fromQendian(byte* bytes) {
 	return value;
 }
 
-CALLEOWNS byte* toQendian(dword n) {
-	byte* bytes;
+void toQendian(dword n, byte bytes[4]) {
 	dword i;
 
-	bytes = malloc(4);
 	for (i = 0; i < 4; ++i) {
 		bytes[i] = (n >> (i * 8)) & 0xFF;
 	}
-	return bytes;
 }
 
 void ftoQendian(FILE* fd, dword n) {

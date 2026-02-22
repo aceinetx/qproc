@@ -124,17 +124,16 @@ void assembler_error(Assembler* this, Token* token, const char* msg) {
 
 bool assembler_do_const_operand(Assembler* this, Token* token) {
 	int i;
-	byte* bytes;
+	byte bytes[4];
 
 	if (this->preprocessor)
 		return true;
 
 	if (token->type == T_NUM) {
-		bytes = toQendian(token->value_u);
+		toQendian(token->value_u, bytes);
 		for (i = 0; i < 4; i++) {
 			assembler_outb(this, bytes[i]);
 		}
-		free(bytes);
 		return true;
 	} else if (token->type == T_IDENTIFIER) {
 		Label* label = assembler_get_label(this, token->value_s);
@@ -143,11 +142,10 @@ bool assembler_do_const_operand(Assembler* this, Token* token) {
 			return false;
 		}
 
-		bytes = toQendian(label->addr);
+		toQendian(label->addr, bytes);
 		for (i = 0; i < 4; i++) {
 			assembler_outb(this, bytes[i]);
 		}
-		free(bytes);
 		return true;
 	}
 

@@ -31,7 +31,8 @@ void vm_lod(VM* vm, dword* dest, dword* src_addr, byte size_specifier) {
 }
 
 void vm_str(VM* vm, dword* dest_addr, dword* src, byte size_specifier) {
-	byte* src_conv = toQendian(*src);
+	byte src_conv[4];
+	toQendian(*src, src_conv);
 	switch (size_specifier) {
 	case SS_DWORD:
 		memcpy(&(vm->memory[*dest_addr]), src_conv, 4);
@@ -45,7 +46,6 @@ void vm_str(VM* vm, dword* dest_addr, dword* src, byte size_specifier) {
 	default:
 		break;
 	}
-	free(src_conv);
 }
 
 void vm_cmp(VM* vm, dword* left, dword* right) {
@@ -59,17 +59,17 @@ void vm_cmp(VM* vm, dword* left, dword* right) {
 }
 
 void vm_pushi(VM* vm, dword source) {
-	byte* src_conv = toQendian(source);
+	byte src_conv[4];
+	toQendian(source, src_conv);
 	memcpy(&(vm->memory[vm->regs.sp - 4]), src_conv, 4);
 	vm->regs.sp -= 4;
-	free(src_conv);
 }
 
 void vm_push(VM* vm, dword* source) {
-	byte* src_conv = toQendian(*source);
+	byte src_conv[4];
+	toQendian(*source, src_conv);
 	memcpy(&(vm->memory[vm->regs.sp - 4]), src_conv, 4);
 	vm->regs.sp -= 4;
-	free(src_conv);
 }
 
 void vm_pop(VM* vm, dword* dest) {

@@ -76,8 +76,7 @@ dword* vm_get_register_from_index(VM* vm, byte index) {
 	return &vm->regs.r0;
 }
 
-CALLEOWNS char* vm_get_regname_from_index(VM* vm, byte index) {
-	char* buf = malloc(4);
+char* vm_get_regname_from_index(VM* vm, byte index, char buf[4]) {
 	switch (index) {
 	case 0:
 		strncpy(buf, "r0", 3);
@@ -151,32 +150,30 @@ void vm_do_instruction(VM* vm) {
 
 	byte first_byte = vm->memory[vm->regs.ip];
 	if (first_byte >= MOV_R0 && first_byte <= MOV_IP) {
-		char *a, *b;
+		char a[4], b[4];
 
 		vm_get_forward(vm, &bytes, 2);
 
 		vm_mov(vm, vm_get_register_from_index(vm, first_byte - MOV_R0), vm_get_register_from_index(vm, bytes[1]));
 
-		a = vm_get_regname_from_index(vm, first_byte);
-		b = vm_get_regname_from_index(vm, bytes[1]);
+		vm_get_regname_from_index(vm, first_byte, a);
+		vm_get_regname_from_index(vm, bytes[1], b);
+
 		snprintf(vm->last_disassembly, DISASM_STR_SIZE, "mov %s %s", a, b);
-		free(a);
-		free(b);
 
 		free(bytes);
 	} else if (first_byte >= MOVI_R0 && first_byte <= MOVI_IP) {
-		char* a;
+		char a[4];
 		dword b;
 
 		vm_get_forward(vm, &bytes, 5);
 
 		vm_movi(vm, vm_get_register_from_index(vm, first_byte - MOVI_R0), fromQendian(&bytes[1]));
 
-		a = vm_get_regname_from_index(vm, first_byte);
+		vm_get_regname_from_index(vm, first_byte, a);
 		b = fromQendian(&bytes[1]);
 
 		snprintf(vm->last_disassembly, DISASM_STR_SIZE, "mov %s %d  @ movi %s %d", a, b, a, b);
-		free(a);
 
 		free(bytes);
 	} else if (first_byte == HLT) {
