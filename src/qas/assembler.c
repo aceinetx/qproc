@@ -6,8 +6,6 @@
 #include <string.h>
 #include <util.h>
 
-const dword LABELS_MAX = 128;
-
 Source sources_store[SOURCES_MAX];
 
 Assembler* assembler_new(FILE* out, Lexer* lexer) {
@@ -18,9 +16,8 @@ Assembler* assembler_new(FILE* out, Lexer* lexer) {
 	assembler->no_stdout = false;
 	assembler->no_fd_buf_p = assembler->no_fd_buf;
 	assembler->lexer = lexer;
-	assembler->labels = malloc(sizeof(Label) * LABELS_MAX);
-	assembler->bytes_assembled = 0;
 	memset(assembler->labels, 0, sizeof(Label) * LABELS_MAX);
+	assembler->bytes_assembled = 0;
 
 	return assembler;
 }
@@ -614,6 +611,5 @@ void assembler_assemble(Assembler* this) {
 }
 
 void assembler_delete(Assembler* this) {
-	free(this->labels);
 	free(this);
 }

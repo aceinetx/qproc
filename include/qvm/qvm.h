@@ -18,7 +18,7 @@ typedef uint32_t dword;
 #define rMiB(times) (rKiB(times) / 1024)
 #define rGiB(times) (rMiB(times) / 1024)
 
-#define MEMORY_SIZE KiB(16)
+#define MEMORY_SIZE KiB(128)
 
 #define SWI_TABLE 0x10000
 #define SCHEDULER 0x11000

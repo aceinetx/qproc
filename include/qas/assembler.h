@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define SOURCES_MAX 64
+#define LABELS_MAX 128
 
 typedef struct Source {
 	dword start_line;
@@ -11,8 +12,6 @@ typedef struct Source {
 } Source;
 
 extern Source sources_store[SOURCES_MAX];
-
-extern const dword LABELS_MAX;
 
 typedef struct {
 	char name[LEXER_STR_MAX];
@@ -23,7 +22,7 @@ typedef struct {
 	FILE* out;
 	Lexer* lexer;
 	dword addr;
-	Label* labels;
+	Label labels[LABELS_MAX];
 	bool preprocessor;
 	dword bytes_assembled;
 	char no_fd_buf[32767]; /* A buffer for cases if FILE* out is NULL, we assume that's intended and instead output the bytes into this buffer */

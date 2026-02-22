@@ -5,8 +5,8 @@
 #define DISASM_STR_SIZE 255
 
 typedef struct {
-	byte* memory;
-	char* last_disassembly;
+	byte memory[MEMORY_SIZE];
+	char last_disassembly[DISASM_STR_SIZE];
 	registers regs;
 	struct {
 		byte CF;
